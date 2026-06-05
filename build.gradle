@@ -7,7 +7,6 @@ plugins {
 }
 
 apply from: 'dependencies.gradle'
-apply from: 'gradle/repositories.gradle'
 
 // VERSION STRATEGY
 //
@@ -124,6 +123,7 @@ publishing {
     
     repositories {
         maven {
+            name = 'staging'
             // Publish to local staging directory for JReleaser to upload
             url = layout.buildDirectory.dir('staging-deploy')
         }
