@@ -414,12 +414,12 @@ This approach ensures your application can always access both the current and pr
 
 ```mermaid
 flowchart TD
-  A[📱 **Your App**] --> B[⚙️ **Otto Config**]
-  B --> C[☁️ **AWS AppConfig**]
-  B --> D[🔐 **AWS Secrets Manager**] 
-  B --> E[📝 **AWS Parameter Store**]
-  B --> F[📝 **Hashicorp Vault**]
-  B --> G[📄 **Local Files**]
+  A[📱 <b>Your App</b>] --> B[⚙️ <b>Otto Config</b>]
+  B --> C[☁️ <b>AWS AppConfig</b>]
+  B --> D[🔐 <b>AWS Secrets Manager</b>] 
+  B --> E[📝 <b>AWS Parameter Store</b>]
+  B --> F[📝 <b>Hashicorp Vault</b>]
+  B --> G[📄 <b>Local Files</b>]
 
   classDef appStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
   classDef ottoConfigStyle fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
