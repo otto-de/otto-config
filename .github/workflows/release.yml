@@ -32,14 +32,20 @@ jobs:
       - name: Build and test
         run: ./gradlew clean check
       
-      - name: Publish to GitHub Packages and Maven Central
+      - name: Publish to local staging
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_SIGNING_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
           GPG_SIGNING_PASSWORD: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
-          MAVEN_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
         run: ./gradlew publish
+      
+      - name: Deploy with JReleaser
+        env:
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JRELEASER_GPG_SECRET_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
+          JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
+          JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
+          JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
+        run: ./gradlew jreleaserDeploy
       
       - name: Extract version from tag
         id: version

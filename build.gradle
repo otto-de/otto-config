@@ -3,6 +3,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
+    id 'org.jreleaser' version '1.24.0'
 }
 
 apply from: 'dependencies.gradle'
@@ -123,23 +124,49 @@ publishing {
     
     repositories {
         maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/otto-de/otto-config")
-            credentials {
-                username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
-                password = project.findProperty("gpr.token") ?: System.getenv("GITHUB_TOKEN")
+            // Publish to local staging directory for JReleaser to upload
+            url = layout.buildDirectory.dir('staging-deploy')
+        }
+    }
+}
+
+jreleaser {
+    release {
+        github {
+            update {
+                enabled = true
             }
         }
-        
+    }
+    project {
+        snapshot {
+            fullChangelog = true
+        }
+    }
+    gitRootSearch = true
+    signing {
+        active = 'ALWAYS'
+        armored = true
+    }
+    deploy {
         maven {
-            name = "MavenCentral"
-            def isSnapshot = version.endsWith('-SNAPSHOT')
-            url = isSnapshot ? 
-                uri("https://s01.oss.sonatype.org/content/repositories/snapshots/") : 
-                uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-            credentials {
-                username = project.findProperty("ossrh.user") ?: System.getenv("MAVEN_USERNAME")
-                password = project.findProperty("ossrh.password") ?: System.getenv("MAVEN_PASSWORD")
+            github {
+                app {
+                    snapshotSupported = true
+                    active = 'ALWAYS'
+                    url = "https://maven.pkg.github.com/otto-de/otto-config"
+                    stagingRepository('build/staging-deploy')
+                }
+            }
+            mavenCentral {
+                app {
+                    snapshotSupported = false
+                    active = 'ALWAYS'
+                    url = 'https://central.sonatype.com/api/v1/publisher'
+                    stagingRepository('build/staging-deploy')
+                    retryDelay = 10
+                    maxRetries = 240
+                }
             }
         }
     }
@@ -151,6 +178,9 @@ signing {
     if (signingKey && signingPassword) {
         useInMemoryPgpKeys(signingKey, signingPassword)
         sign publishing.publications.mavenJava
+    } else {
+        // JReleaser will handle signing if Gradle signing is not configured
+        logger.warn("Gradle signing not configured - JReleaser will handle signing")
     }
 }
 
