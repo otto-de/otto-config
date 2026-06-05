@@ -148,6 +148,7 @@ jreleaser {
     signing {
         active = 'ALWAYS'
         armored = true
+        verify = false  // Don't require public key - JReleaser will extract it from secret key
     }
     deploy {
         maven {
