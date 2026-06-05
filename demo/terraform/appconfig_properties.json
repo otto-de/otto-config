@@ -1,0 +1,10 @@
+{
+    "properties": {
+        "myKey1": "myValue",
+        "myKey2": "myValue1;myValue2",
+        "myKey3": "myValue",
+        "myKey4": "myValue",
+        "myKey5": "myValue",
+        "logging.enabled": "true"
+    }
+}

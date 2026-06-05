@@ -844,7 +844,7 @@ Use the following `tasks.json` configuration to start Vault locally for developm
             "env": {
                 "AWS_PROFILE": "search-develop-admin",
                 "AWS_REGION": "eu-central-1",
-                "ZEALOT_HASHICORP_VAULT_AUTH_AWS_ROLE_ARN": "arn:aws:iam::926377890519:role/pipeline-role"
+                "OTTO_CONFIG_HASHICORP_VAULT_AUTH_AWS_ROLE_ARN": "arn:aws:iam::926377890519:role/pipeline-role"
             }
         },
         {
@@ -856,8 +856,8 @@ Use the following `tasks.json` configuration to start Vault locally for developm
             "env": {
                 "AWS_PROFILE": "search-develop-admin",
                 "AWS_REGION": "eu-central-1",
-                "ZEALOT_HASHICORP_VAULT_AUTH_TYPE": "approle",
-                "ZEALOT_HASHICORP_VAULT_URL": "http://localhost:8200"
+                "OTTO_CONFIG_HASHICORP_VAULT_AUTH_TYPE": "approle",
+                "OTTO_CONFIG_HASHICORP_VAULT_URL": "http://localhost:8200"
             },
             "preLaunchTask": "vault",
             "envFile": "${workspaceFolder}/.env"
@@ -872,7 +872,7 @@ Use the following `tasks.json` configuration to start Vault locally for developm
             "env": {
                 "AWS_PROFILE": "search-develop-admin",
                 "AWS_REGION": "eu-central-1",
-                "ZEALOT_HASHICORP_VAULT_AUTH_AWS_ROLE_ARN": "arn:aws:iam::926377890519:role/pipeline-role"
+                "OTTO_CONFIG_HASHICORP_VAULT_AUTH_AWS_ROLE_ARN": "arn:aws:iam::926377890519:role/pipeline-role"
             }
         },
         {
@@ -885,8 +885,8 @@ Use the following `tasks.json` configuration to start Vault locally for developm
             "env": {
                 "AWS_PROFILE": "search-develop-admin",
                 "AWS_REGION": "eu-central-1",
-                "ZEALOT_HASHICORP_VAULT_AUTH_TYPE": "approle",
-                "ZEALOT_HASHICORP_VAULT_URL": "http://localhost:8200"
+                "OTTO_CONFIG_HASHICORP_VAULT_AUTH_TYPE": "approle",
+                "OTTO_CONFIG_HASHICORP_VAULT_URL": "http://localhost:8200"
             },
             "preLaunchTask": "vault",
             "envFile": "${workspaceFolder}/.env"
@@ -903,7 +903,7 @@ Use the following `tasks.json` configuration to start Vault locally for developm
             "env": {
                 "AWS_PROFILE": "search-develop-admin",
                 "AWS_REGION": "eu-central-1",
-                "ZEALOT_HASHICORP_VAULT_AUTH_AWS_ROLE_ARN": "arn:aws:iam::926377890519:role/pipeline-role"
+                "OTTO_CONFIG_HASHICORP_VAULT_AUTH_AWS_ROLE_ARN": "arn:aws:iam::926377890519:role/pipeline-role"
             }
         },
         {
@@ -918,8 +918,8 @@ Use the following `tasks.json` configuration to start Vault locally for developm
             "env": {
                 "AWS_PROFILE": "search-develop-admin",
                 "AWS_REGION": "eu-central-1",
-                "ZEALOT_HASHICORP_VAULT_AUTH_TYPE": "approle",
-                "ZEALOT_HASHICORP_VAULT_URL": "http://localhost:8200"
+                "OTTO_CONFIG_HASHICORP_VAULT_AUTH_TYPE": "approle",
+                "OTTO_CONFIG_HASHICORP_VAULT_URL": "http://localhost:8200"
             },
             "preLaunchTask": "vault",
             "envFile": "${workspaceFolder}/.env"

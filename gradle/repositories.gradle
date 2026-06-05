@@ -1,0 +1,69 @@
+/**
+ *                               (
+ *    (        (  (       (      )\ )
+ *  ( )\  (    )\))(   '  )\    (()/( (
+ *  )((_) )\  ((_)()\ )((((_)(   /(_)))\
+ * ((_)_ ((_) _(())\_)())\ _ )\ (_)) ((_)
+ *  | _ )| __|\ \((_)/ /(_)_\(_)| _ \| __|
+ *  | _ \| _|  \ \/\/ /  / _ \  |   /| _|
+ *  |___/|___|  \_/\_/  /_/ \_\ |_|_\|___|
+ *
+ * DO NOT MAKE ANY CHANGES HERE!
+ * 
+ * This file is a copy from the pipeline-scripts project (git@github.com:otto-ec/nucleus_pipeline-scripts.git)
+ *
+ * It will be overwritten every night by the source from the pipeline-scripts.
+ * If you want to make changes to it that should be available globally, change it in the pipeline-scripts repo.
+ * If you have a change unique to this project consider putting the information elsewhere.
+ */
+apply plugin: 'maven-publish'
+
+ext {
+    //this block switches the s3 maven bucket base don environment variables (used for example in the desaster recovery)
+    bucket_from_env = "$System.env.MVN_REPO_BUCKET"
+    // default bucket for gradle execution without sourcing helper.inc.sh/config.global.inc.sh beforehand
+    maven_bucket = 'search-infrastructure-maven-repo-eu-central-1-669674856486'
+    maven_bucket_opal = '948404762416-opal-jenkins-repository-live'
+    if (bucket_from_env != null && bucket_from_env.toString() != 'null') {
+        maven_bucket = bucket_from_env.toString()
+    }
+}
+
+allprojects {
+    repositories {
+        // mavenLocal() uncomment to
+        mavenCentral()
+        maven {
+            url "s3://${maven_bucket}.s3-eu-central-1.amazonaws.com"
+            authentication {
+                awsIm(AwsImAuthentication)
+            }
+        }
+        maven {
+            // for de.otto:feed-reader
+            url "s3://${maven_bucket_opal}"
+            authentication {
+                awsIm(AwsImAuthentication)
+            }
+        }
+        flatDir {
+            dirs "libs"
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            url "s3://${maven_bucket}"
+            authentication {
+                awsIm(AwsImAuthentication)
+            }
+        }
+    }
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}

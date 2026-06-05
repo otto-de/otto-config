@@ -1,0 +1,122 @@
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.Path
+import java.nio.file.StandardCopyOption
+
+plugins {
+    id 'java'
+    id 'eclipse'
+    id 'application'
+    id 'org.kordamp.gradle.jandex' version '2.0.0'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+apply from: 'gradle/integrationTest.gradle'
+
+ext {
+    mainClass='io.helidon.microprofile.cdi.Main'
+}
+
+dependencies {
+    implementation project(':') 
+    implementation enforcedPlatform("io.helidon:helidon-dependencies:${helidonVersion}")
+
+    implementation "io.helidon.microprofile.scheduling:helidon-microprofile-scheduling:${helidonVersion}"
+    implementation "io.helidon.microprofile.bundles:helidon-microprofile:${helidonVersion}"
+    implementation "io.helidon.config:helidon-config:${helidonVersion}"
+
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '8.0'
+    runtimeOnly 'ch.qos.logback:logback-classic:1.5.13'
+}
+
+run {
+    systemProperty "logback.configurationFile", System.getProperty('logback.configurationFile', "logback-local.xml")
+    systemProperty "mp.config.profile", "develop"
+    systemProperty "otto.config.aws.secrets.arn", "arn:aws:secretsmanager:eu-central-1:926377890519:secret:marvin-tLk2it"
+    systemProperty "app.ssm.paths", "/search/develop/zealot/config/"
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDirs = ['src/main/resources']
+        }
+    }
+}
+
+// define a custom task to copy all dependencies in the runtime classpath
+// into build/libs/libs
+// uses built-in Copy
+task copyLibs(type: Copy) {
+  from configurations.runtimeClasspath
+  into 'build/libs/libs'
+}
+
+// add it as a dependency of built-in task 'assemble'
+copyLibs.dependsOn jar
+assemble.dependsOn copyLibs
+
+// default jar configuration
+// set the main classpath
+// add each jar under build/libs/libs into the classpath
+jar {
+  archiveFileName = "${project.name}.jar"
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+  manifest {
+    attributes ('Main-Class': "${project.mainClass}" ,
+                'Class-Path': configurations.runtimeClasspath.files.collect { "libs/$it.name" }.join(' ')
+               )
+  }
+}
+
+application {
+    mainClass = "${project.mainClass}"
+}
+
+// This is a work-around for running the local app and unit tests.
+// Gradle places resource files under ${buildDir}/resources. In order for
+// beans.xml to get picked up by CDI it must be co-located with the classes.
+// So we move it before running tests.
+// In either case it ends up AOK in the final jar artifact
+tasks.register('copyBeansXML') {
+    doLast {
+        Path beansFile = Paths.get("${project.projectDir}", "build/resources/main/META-INF/beans.xml")
+        Path targetPathHelidon = Paths.get("${project.projectDir}", "build/classes/java/main/META-INF/")
+        Path targetPathRoot = Paths.get(rootProject.projectDir.toString(), "build/classes/java/main/META-INF/")
+        System.out.println("Try copying " + beansFile.toAbsolutePath() + " to " + targetPathHelidon.toAbsolutePath());
+        if (Files.exists(beansFile)) {
+            targetPathHelidon.toFile().mkdirs();
+            Files.copy(
+                beansFile,
+                targetPathHelidon.resolve("beans.xml"),
+                StandardCopyOption.REPLACE_EXISTING
+            );
+            System.out.println("Copied " + beansFile.toAbsolutePath() + " to " + targetPathHelidon.toAbsolutePath());
+
+            targetPathRoot.toFile().mkdirs();
+            Files.copy(
+                beansFile,
+                targetPathRoot.resolve("beans.xml"),
+                StandardCopyOption.REPLACE_EXISTING
+            );
+            System.out.println("Copied " + beansFile.toAbsolutePath() + " to " + targetPathRoot.toAbsolutePath());
+        }
+    }
+}
+
+compileTestJava.dependsOn "jandex"
+jar.dependsOn "jandex"
+test.dependsOn copyBeansXML
+run.dependsOn copyBeansXML
+run.dependsOn "jandex"

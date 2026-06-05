@@ -1,0 +1,13 @@
+configurations {
+    test {
+        exclude module: "junit"
+    }
+}
+
+//ext {
+//    maxTestParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+//}
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+}

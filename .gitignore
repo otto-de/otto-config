@@ -1,0 +1,29 @@
+# common
+*~
+
+# gradle
+.gradle/
+**/build/
+
+# idea
+.idea/
+/target/
+/out/
+/classes/
+*.ipr
+*.iws
+*.iml
+
+# testng
+/test-output/
+bin
+.vscode
+
+# sdkman
+.sdkmanrc
+
+**/.terraform/
+**/.terraform.lock.hcl
+**/asg_capacity.txt
+**/*.tfstate
+.env

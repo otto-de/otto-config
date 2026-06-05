@@ -1,0 +1,13 @@
+{
+    "flags": {
+        "logging_enabled": {
+            "name": "LOGGING_ENABLED"
+        }
+    },
+    "values": {
+        "logging_enabled": {
+            "enabled": false
+}
+    },
+    "version": "1"
+}

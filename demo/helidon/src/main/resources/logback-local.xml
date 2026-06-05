@@ -1,0 +1,24 @@
+<configuration>
+
+    <contextName>marvin</contextName>
+    <jmxConfigurator/>
+
+
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} | %6.-6thread | %highlight(%5p)| %cyan(%25.-25class{0}) | %-13X{handler} |
+                %X{_rtid} | %green(%m) | at %class.%M\(%class{0}:%L\) %n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <logger name="de.otto" level="INFO"/>
+
+    <root level="INFO">
+        <appender-ref ref="console"/>
+    </root>
+    <logger name="org.glassfish" level="FINE">
+        <appender-ref ref="console"/>
+    </logger>
+
+</configuration>

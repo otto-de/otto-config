@@ -1,0 +1,9 @@
+ext{
+    lombokVersion = "1.18.40"
+    springContextVersion = "5.3.22"
+    springBootVersion = "3.5.5"
+    awsSdkVersion = "2.31.54"
+    junit5Version = "5.11.3"
+    hamcrestVersion = "2.2"
+    helidonVersion = "4.3.0"
+}

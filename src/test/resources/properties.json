@@ -1,0 +1,48 @@
+{
+  "properties": {
+    "myKey1": "myValue",
+    "myKey2": "myValue1;myValue2",
+    "myKey3": "myValue",
+    "myKey4": "myValue",
+    "myKey5": "myValue",
+    "my.secret1": "secret-value1",
+    "my.secret2": "secret-value2",
+    "my.ssm.property1": "ssm-value1",
+    "my.ssm.property2": "ssm-value2",
+    "auth.client.id": "value1,value2,value2"
+  },
+  "toggles": {
+    "another_toggle": {
+      "enabled": false
+    },
+    "ftsn-415-test-toggle": {
+      "enabled": true
+    }
+  },
+  "experiments": {
+    "search_experiment": {
+      "group_a": {
+        "configs": {
+          "search.algorithm": "default"
+        }
+      },
+      "group_b": {
+        "configs": {
+          "search.algorithm": "enhanced"
+        }
+      }
+    },
+    "filter_experiment": {
+      "group_a": {
+        "configs": {
+          "filter.enabled": "false"
+        }
+      },
+      "group_b": {
+        "configs": {
+          "filter.enabled": "true"
+        }
+      }
+    }
+  }
+}

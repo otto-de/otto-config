@@ -1,0 +1,91 @@
+plugins {
+    id 'java'
+    id 'java-library'
+    id 'maven-publish'
+}
+
+apply from: 'dependencies.gradle'
+apply from: 'gradle/repositories.gradle'
+
+group = 'de.otto.config'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+dependencies {
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    // Spring dependencies as compileOnly
+    compileOnly "org.springframework:spring-context:${springContextVersion}"
+    compileOnly "org.springframework.boot:spring-boot-autoconfigure:${springBootVersion}"
+
+    // Helidon dependencies as compileOnly
+    compileOnly "io.helidon.microprofile.scheduling:helidon-microprofile-scheduling:${helidonVersion}"
+    compileOnly "io.helidon.config:helidon-config:${helidonVersion}"
+
+    // Add Spring Boot testing starter
+    testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+
+    // Other dependencies
+    implementation "software.amazon.awssdk:sts:${awsSdkVersion}"
+    api "software.amazon.awssdk:appconfigdata:${awsSdkVersion}"
+    api "software.amazon.awssdk:secretsmanager:${awsSdkVersion}"
+    api "software.amazon.awssdk:ssm:${awsSdkVersion}"
+    api "software.amazon.awssdk:sqs:${awsSdkVersion}"
+    api "com.google.guava:guava:33.1.0-jre"
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.2'
+    
+    // Testing dependencies
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junit5Version}"
+    testImplementation "org.junit.jupiter:junit-jupiter-params:${junit5Version}"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junit5Version}"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+
+    testImplementation "org.mockito:mockito-core:5.11.0"
+    testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
+
+    testImplementation "io.helidon.config:helidon-config:${helidonVersion}"
+    testImplementation "io.helidon.microprofile.testing:helidon-microprofile-testing-junit5:${helidonVersion}"
+	testImplementation "io.helidon.microprofile.testing:helidon-microprofile-testing-mocking:${helidonVersion}"
+}
+
+jar {
+    archiveBaseName = "${rootProject.name}"
+    archiveVersion = "${project.version}"
+}
+
+tasks.register('delombok') {
+    description 'Delomboks the source code'
+    ant.taskdef(classname: 'lombok.delombok.ant.Tasks$Delombok',
+            classpath:  configurations.compileClasspath.asPath,
+            name: 'delombok')
+    ant.delombok(verbose: 'true',
+            encoding: 'UTF-8',
+            to: 'build/delombok',
+            from: 'src/')
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    archiveClassifier.set('sources')
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives jar
+    archives sourcesJar
+}
+
+test {
+    useJUnitPlatform()
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    dependencies {
+        // Common dependencies can be declared here
+    }
+}

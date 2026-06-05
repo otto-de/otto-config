@@ -1,0 +1,5 @@
+rootProject.name = 'otto-config'
+
+include ':demo:helidon'
+include ':demo:spring'
+include ':demo:java'

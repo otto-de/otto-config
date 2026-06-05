@@ -1,0 +1,42 @@
+apply plugin: 'idea'
+apply from: 'gradle/testing.gradle'
+
+sourceSets {
+    integrationTest {
+        java.srcDirs = ['src/integration-test/java']
+        resources.srcDirs = ['src/integration-test/resources']
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+
+configurations {
+    integrationTestImplementation.extendsFrom implementation
+    integrationTestRuntimeOnly.extendsFrom runtimeOnly
+}
+
+dependencies {
+    integrationTestAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    integrationTestCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    integrationTestCompileOnly 'com.google.code.findbugs:jsr305:3.0.2'
+    integrationTestImplementation 'com.fasterxml.jackson.core:jackson-databind:2.17.1'
+
+    integrationTestImplementation("org.springframework.boot:spring-boot-starter-test:${springBootVersion}") {
+        exclude group: 'org.hamcrest', module: 'hamcrest'
+    }
+    integrationTestRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+task integrationTest(type: Test) {
+    group = 'Verification'
+    description = 'Runs the integration tests.'
+
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    
+    useJUnitPlatform()
+    
+    shouldRunAfter test
+}
+
+check.dependsOn integrationTest

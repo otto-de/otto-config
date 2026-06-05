@@ -1,0 +1,53 @@
+{
+  "properties": {
+    "myKey1": "myValue",
+    "myKey2": "myValue1;myValue2",
+    "myKey3": "myValue",
+    "myKey4": "myValue",
+    "myKey5": "myValue"
+  },
+  "toggles": {
+    "another_toggle": {
+        "enabled": false
+    },
+    "ftsn-415-test-toggle": {
+        "enabled": true
+    }
+  },
+  "experiments": {
+    "E3072": {
+      "E3072A": {
+        "configs": {}
+      },
+      "E3072B": {
+        "configs": {
+          "querqy.rewriters": "lts_jangofett,lts_decorate,multisynonyms,zgs,onex_marker,synonyms,filter,subtopics"
+        }
+      }
+    },
+    "E3120": {
+      "E3120A": {
+        "configs": {
+          "searchcount.withoutfq": "false"
+        }
+      },
+      "E3120B": {
+        "configs": {
+          "searchcount.withoutfq": "true"
+        }
+      }
+    },
+    "E3205": {
+      "E3205A": {
+        "configs": {
+          "spellcheck.enabled": "false"
+        }
+      },
+      "E3205B": {
+        "configs": {
+          "spellcheck.enabled": "true"
+        }
+      }
+    }
+  }
+}

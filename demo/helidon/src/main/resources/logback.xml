@@ -1,0 +1,44 @@
+<configuration>
+
+    <contextName>marvin</contextName>
+
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder name="console" class="net.logstash.logback.encoder.LogstashEncoder">
+            <fieldNames>
+                <logger>logger</logger>
+                <thread>thread</thread>
+                <levelValue>[ignore]</levelValue>
+                <version>[ignore]</version>
+                <stackTrace>exception_stacktrace</stackTrace>
+            </fieldNames>
+            <includeContext>true</includeContext>
+
+            <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                <exclude>^org\.jboss\.weld\..*</exclude>
+                <exclude>^org\.glassfish\.tyrus\..*</exclude>
+                <rootCauseFirst>true</rootCauseFirst>
+            </throwableConverter>
+            <provider class="net.logstash.logback.composite.loggingevent.ThrowableClassNameJsonProvider">
+                <fieldName>exception_classname</fieldName>
+                <useSimpleClassName>false</useSimpleClassName>
+            </provider>
+            <provider class="net.logstash.logback.composite.loggingevent.ThrowableMessageJsonProvider">
+                <fieldName>exception_message</fieldName>
+            </provider>
+            <provider class="net.logstash.logback.composite.loggingevent.ThrowableRootCauseClassNameJsonProvider">
+                <fieldName>exception_root_classname</fieldName>
+                <useSimpleClassName>false</useSimpleClassName>
+            </provider>
+            <provider class="net.logstash.logback.composite.loggingevent.ThrowableRootCauseMessageJsonProvider">
+                <fieldName>exception_root_message</fieldName>
+            </provider>
+        </encoder>
+    </appender>
+
+    <logger name="de.otto" level="INFO"/>
+
+    <root level="INFO">
+        <appender-ref ref="console"/>
+    </root>
+
+</configuration>
