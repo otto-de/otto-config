@@ -35,10 +35,10 @@ jobs:
       - name: Publish to GitHub Packages and Maven Central
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
-          GPG_SIGNING_PASSWORD: ${{ secrets.GPG_SIGNING_PASSWORD }}
-          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+          GPG_SIGNING_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
+          GPG_SIGNING_PASSWORD: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
+          MAVEN_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
         run: ./gradlew publish
       
       - name: Extract version from tag

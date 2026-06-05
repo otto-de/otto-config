@@ -72,6 +72,7 @@ dependencies {
 jar {
     archiveBaseName = "${rootProject.name}"
     archiveVersion = "${project.version}"
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 tasks.register('delombok') {
