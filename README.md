@@ -440,8 +440,8 @@ flowchart TD
 
     %% Applications
     subgraph A[📱 Applications]
-        A1[🌱 **Spring Boot App**] -->
-        A2[☀️ **Helidon App**]
+        A1[🌱 <b>Spring Boot App</b>] -->
+        A2[☀️ <b>Helidon App</b>]
     end
 
     %% Framework Integration
