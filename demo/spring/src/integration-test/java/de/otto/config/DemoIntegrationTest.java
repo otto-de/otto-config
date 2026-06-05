@@ -1,4 +1,4 @@
-package de.otto.search;
+package de.otto.config;
 
 import de.otto.config.demo.DemoApplication;
 import de.otto.config.integration.spring.config.BeanConfiguration;

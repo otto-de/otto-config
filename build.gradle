@@ -2,14 +2,31 @@ plugins {
     id 'java'
     id 'java-library'
     id 'maven-publish'
+    id 'signing'
 }
 
 apply from: 'dependencies.gradle'
 apply from: 'gradle/repositories.gradle'
 
+// VERSION STRATEGY
+//
+// Manual version management - update this for each release
+// Format: MAJOR.MINOR.PATCH for releases, MAJOR.MINOR.PATCH-SNAPSHOT for development
+//
+// Example: 0.1.0-SNAPSHOT for development, 0.1.0 for release
+//
+// DO NOT FORGET TO DOCUMENT CHANGES IN CHANGELOG.md (create if needed)
+//
+def otto_config_version = "0.1.0-SNAPSHOT"  // <--- SET AND UPDATE VERSION HERE
+
 group = 'de.otto.config'
+version = otto_config_version
+
+apply from: 'gradle/maven.gradle'
 
 java {
+    withJavadocJar()
+    withSourcesJar()
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
 }
@@ -68,18 +85,72 @@ tasks.register('delombok') {
             from: 'src/')
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-    archiveClassifier.set('sources')
-    from sourceSets.main.allSource
-}
-
-artifacts {
-    archives jar
-    archives sourcesJar
-}
-
 test {
     useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            pom {
+                name = 'Otto Config'
+                description = 'Configuration library for AWS AppConfig, Secrets Manager, and Parameter Store integration'
+                url = 'https://github.com/otto-de/otto-config'
+                
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                
+                developers {
+                    developer {
+                        id = 'otto-de'
+                        name = 'Otto GmbH & Co KG'
+                    }
+                }
+                
+                scm {
+                    connection = 'scm:git:https://github.com/otto-de/otto-config.git'
+                    developerConnection = 'scm:git:ssh://github.com/otto-de/otto-config.git'
+                    url = 'https://github.com/otto-de/otto-config'
+                }
+            }
+        }
+    }
+    
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/otto-de/otto-config")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                password = project.findProperty("gpr.token") ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
+        
+        maven {
+            name = "MavenCentral"
+            def isSnapshot = version.endsWith('-SNAPSHOT')
+            url = isSnapshot ? 
+                uri("https://s01.oss.sonatype.org/content/repositories/snapshots/") : 
+                uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+            credentials {
+                username = project.findProperty("ossrh.user") ?: System.getenv("MAVEN_USERNAME")
+                password = project.findProperty("ossrh.password") ?: System.getenv("MAVEN_PASSWORD")
+            }
+        }
+    }
+}
+
+signing {
+    def signingKey = findProperty("signingKey") ?: System.getenv("GPG_SIGNING_KEY")
+    def signingPassword = findProperty("signingPassword") ?: System.getenv("GPG_SIGNING_PASSWORD")
+    if (signingKey && signingPassword) {
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign publishing.publications.mavenJava
+    }
 }
 
 subprojects {
