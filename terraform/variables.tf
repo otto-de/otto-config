@@ -3,50 +3,6 @@ variable "service" {
   type = string
 }
 
-variable "experiments_json_schema" {
-  type    = string
-  default = <<EOF
-{
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "properties": {
-    "experiments": {
-      "type": "object",
-      "additionalProperties": {
-        "type": "object",
-        "minProperties": 1,
-        "additionalProperties": {
-          "type": "object",
-          "properties": {
-            "configs": {
-              "type": "object"
-            }
-          },
-          "required": ["configs"]
-        }
-      }
-    }
-  },
-  "required": ["experiments"],
-  "additionalProperties": false
-}
-EOF
-}
-
-# Retain the legacy "onex" configuration content for backward compatibility during migration to the new
-# "experiments" configuration content.
-variable "onex_configuration_content" {
-  default = ""
-  description = "Content of the Onex configuration"
-  type = string
-}
-
-variable "experiments_configuration_content" {
-  default = ""
-  description = "Content of the Experiments configuration"
-  type = string
-}
-
 variable "toggles_configuration_content" {
   default = ""
   description = "Content of the Toggles configuration"

@@ -3,8 +3,6 @@ package de.otto.config.integration.spring.config;
 import de.otto.config.core.Context;
 import de.otto.config.integration.spring.env.PropertySource;
 import de.otto.config.provider.ConfigurationProvider;
-import de.otto.config.provider.ExperimentProvider;
-import de.otto.config.service.ExperimentService;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -29,23 +27,6 @@ public class BeanConfiguration {
     @ConditionalOnMissingBean(ConfigurationProvider.class)
     public ConfigurationProvider configurationProvider(PropertySource propertySource) {
         return propertySource.getConfigurationProvider();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean(ExperimentProvider.class)
-    public ExperimentProvider experimentProvider(Context context) {
-        return ExperimentProvider.builder()
-                                 .context(context)
-                                 .build();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean(ExperimentService.class)
-    public ExperimentService experimentService(Context context, ExperimentProvider experimentProvider) {
-        return ExperimentService.builder()
-                                .context(context)
-                                .experimentProvider(experimentProvider)
-                                .build();
     }
 
     @Bean

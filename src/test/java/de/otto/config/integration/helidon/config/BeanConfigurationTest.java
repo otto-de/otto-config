@@ -7,7 +7,6 @@ import de.otto.config.core.Context;
 import de.otto.config.core.registry.ClientRegistry;
 import de.otto.config.integration.helidon.spi.PropertySource;
 import de.otto.config.provider.ConfigurationProvider;
-import de.otto.config.provider.ExperimentProvider;
 
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
@@ -126,11 +125,9 @@ class BeanConfigurationTest {
         // when
         BeanConfiguration zealotConfiguration = new BeanConfiguration();
         ConfigurationProvider configurationProvider = zealotConfiguration.configurationProvider();
-        ExperimentProvider experimentProvider = zealotConfiguration.experimentProvider(zealotConfiguration.context(configMock));
 
         // then
         assertThat(configurationProvider.getValue("myKey1"), is("myValue"));
         assertThat(configurationProvider.getValue("ftsn-415-test-toggle"), is(true));
-        assertThat(experimentProvider.getProperties().get("E3072"), is(notNullValue()));
     }
 }

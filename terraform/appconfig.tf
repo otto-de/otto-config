@@ -2,68 +2,6 @@ resource "aws_appconfig_application" "app_config" {
   name        = var.service
 }
 
-# Retain the legacy "onex" configuration profile for backward compatibility during migration to the new
-# "experiments" configuration profile.
-resource "aws_appconfig_configuration_profile" "onex" {
-  count              = var.onex_configuration_content != "" ? 1 : 0
-
-  name               = "onex"
-  application_id     = aws_appconfig_application.app_config.id
-  description        = "Onex configuration profile"
-  location_uri       = "hosted"
-
-  lifecycle {
-    prevent_destroy = false
-  }
-}
-
-# Retain the legacy "onex" hosted configuration version for backward compatibility during migration to the new
-# "experiments" hosted configuration version.
-resource "aws_appconfig_hosted_configuration_version" "onex" {
-  count                    = var.onex_configuration_content != "" ? 1 : 0
-
-  application_id           = aws_appconfig_application.app_config.id
-  configuration_profile_id = aws_appconfig_configuration_profile.onex[0].configuration_profile_id
-  description              = "Onex Hosted Configuration"
-  content_type             = "application/json"
-
-  content                  = var.onex_configuration_content
-}
-
-resource "aws_appconfig_configuration_profile" "experiments" {
-  name               = "experiments"
-  application_id     = aws_appconfig_application.app_config.id
-  description        = "Experiments configuration profile"
-  location_uri       = "hosted"
-
-  validator {
-    content = var.experiments_json_schema
-    type    = "JSON_SCHEMA"
-  }
-}
-
-resource "aws_appconfig_hosted_configuration_version" "experiments" {
-  count                    = var.experiments_configuration_content != "" ? 1 : 0
-
-  application_id           = aws_appconfig_application.app_config.id
-  configuration_profile_id = aws_appconfig_configuration_profile.experiments.configuration_profile_id
-  description              = "Experiments Hosted Configuration"
-  content_type             = "application/json"
-
-  content                  = var.experiments_configuration_content
-}
-
-resource "aws_appconfig_deployment" "experiments_deployment" {
-  count                    = var.experiments_configuration_content != "" ? 1 : 0
-
-  application_id           = aws_appconfig_application.app_config.id
-  configuration_profile_id = aws_appconfig_configuration_profile.experiments.configuration_profile_id
-  configuration_version    = aws_appconfig_hosted_configuration_version.experiments[0].version_number
-  deployment_strategy_id   = aws_appconfig_deployment_strategy.deployment_strategy.id
-  description              = "Experiments Deployment"
-  environment_id           = aws_appconfig_environment.environment.environment_id
-}
-
 resource "aws_appconfig_configuration_profile" "toggles" {
   name               = "toggles"
   application_id     = aws_appconfig_application.app_config.id

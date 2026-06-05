@@ -43,7 +43,7 @@ public class ConfigurationProviderTest {
         when(propertySource.getTypeReference()).thenReturn(Properties.typeReference);
 
         ConfigurationCache<String> configuration = new ConfigurationCache<>(Map.of(
-                    "otto.config.sources.enabled", "aws.appconfig.properties,aws.appconfig.toggles,aws.appconfig.experiments,aws.secrets,aws.ssm",
+                    "otto.config.sources.enabled", "aws.appconfig.properties,aws.appconfig.toggles,aws.secrets,aws.ssm",
                     "otto.config.aws.secrets.arn", "arn:aws:secretsmanager:123"
             ));
         Context context = Context.builder().configuration(configuration).build();

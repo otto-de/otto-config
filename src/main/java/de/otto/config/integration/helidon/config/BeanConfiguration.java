@@ -3,8 +3,6 @@ package de.otto.config.integration.helidon.config;
 import de.otto.config.core.Context;
 import de.otto.config.integration.helidon.spi.PropertySource;
 import de.otto.config.provider.ConfigurationProvider;
-import de.otto.config.provider.ExperimentProvider;
-import de.otto.config.service.ExperimentService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
@@ -35,22 +33,6 @@ public class BeanConfiguration {
     public ConfigurationProvider configurationProvider() {
         return this.propertySource.getConfigurationProvider();
     }
-
-    @Produces
-    public ExperimentProvider experimentProvider(Context context) {
-        return ExperimentProvider.builder()
-                                 .context(context)
-                                 .build();
-    }
-
-    @Produces
-    public ExperimentService experimentService(Context context, ExperimentProvider experimentProvider) {
-        return ExperimentService.builder()
-                                .context(context)
-                                .experimentProvider(experimentProvider)
-                                .build();
-    }
-
 
     private PropertySource getPropertySource() {
         return StreamSupport.stream(ConfigProvider.getConfig().getConfigSources().spliterator(), false)

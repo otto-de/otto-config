@@ -9,9 +9,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import de.otto.config.core.property.Property;
 import de.otto.config.core.property.PropertyValue;
 import de.otto.config.core.property.PropertyVersion;
-import de.otto.config.domain.Experiments.Groups;
 import de.otto.config.provider.ConfigurationProvider;
-import de.otto.config.provider.ExperimentProvider;
 import io.helidon.scheduling.Scheduling.FixedRate;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -22,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 public class DemoService {
 
     private final ConfigurationProvider configurationProvider;
-    private final ExperimentProvider experimentProvider;
     private final Config config;
     private final io.helidon.config.Config helidonConfig;
     private final boolean loggingEnabled;
@@ -34,7 +31,6 @@ public class DemoService {
 
     @Inject
     public DemoService(ConfigurationProvider configurationProvider,
-                       ExperimentProvider experimentProvider,
                        Config config,
                        io.helidon.config.Config helidonConfig,
                        @ConfigProperty(name = "logging.enabled") String loggingEnabled,
@@ -44,7 +40,6 @@ public class DemoService {
                        @ConfigProperty(name = "auth.client.id") List<String> authClientIds,
                        @PropertyValue("auth.client.id") PropertyVersion authClientIdVersions) {
         this.configurationProvider = configurationProvider;
-        this.experimentProvider = experimentProvider;
         this.config = config;
         this.helidonConfig = helidonConfig;
         this.loggingEnabled = Boolean.parseBoolean(loggingEnabled);
@@ -82,13 +77,5 @@ public class DemoService {
 
         Map<String, String> properties = configurationProvider.getProperties();
         log.info("All properties: " + properties);
-
-        Map<String, Groups> experiments = experimentProvider.getProperties();
-        log.info("Experiments: " + experiments);
-
-        log.info("Groups for search_experiment experiment: " + experiments.get("search_experiment"));
-        log.info("Param search.algorithm for group_a group: " + experimentProvider.getProperties().get("search_experiment")
-                                                                                                  .getGroups().get("group_a")
-                                                                                                  .getConfigs().get("search.algorithm"));
     }
 }

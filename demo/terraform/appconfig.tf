@@ -3,7 +3,6 @@ module "appconfig_service" {
 
   service = var.service
 
-  experiments_configuration_content = file("${path.module}/appconfig_experiments.json")
   toggles_configuration_content = file("${path.module}/appconfig_toggles.json")
   properties_configuration_content = file("${path.module}/appconfig_properties.json")
 

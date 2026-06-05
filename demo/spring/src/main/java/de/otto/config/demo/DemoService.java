@@ -13,9 +13,7 @@ import org.springframework.stereotype.Service;
 import de.otto.config.core.property.Property;
 import de.otto.config.core.property.PropertyValue;
 import de.otto.config.core.property.PropertyVersion;
-import de.otto.config.domain.Experiments.Groups;
 import de.otto.config.provider.ConfigurationProvider;
-import de.otto.config.provider.ExperimentProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 public class DemoService {
 
     private final ConfigurationProvider configurationProvider;
-    private final ExperimentProvider experimentProvider;
     private final Environment environment;
 
     @Value("${logging.enabled}")
@@ -68,12 +65,5 @@ public class DemoService {
 
         Map<String, String> properties = configurationProvider.getProperties();
         log.info("All properties: " + properties);
-
-        Map<String, Groups> experiments = experimentProvider.getProperties();
-        log.info("Experiments: " + experiments);
-
-        log.info("Groups for search_experiment experiment: " + experiments.get("search_experiment"));
-        log.info("Param search.algorithm for group_a group: " + experimentProvider.getProperties().get("search_experiment")
-                                                                                                  .getGroups().get("group_a")                                                                                        .getConfigs().get("search.algorithm"));
     }
 }

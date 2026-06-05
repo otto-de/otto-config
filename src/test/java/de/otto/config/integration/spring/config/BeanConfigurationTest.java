@@ -7,8 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import de.otto.config.core.Context;
 import de.otto.config.integration.spring.fixtures.MockBeans;
 import de.otto.config.provider.ConfigurationProvider;
-import de.otto.config.provider.ExperimentProvider;
-import de.otto.config.service.ExperimentService;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -30,22 +28,12 @@ class BeanConfigurationTest {
         @Autowired
         private ConfigurationProvider configurationProvider;
 
-        @Autowired
-        private ExperimentProvider experimentProvider;
-
-        @Autowired
-        private ExperimentService experimentService;
-
         @Test
         void shouldCreateBeanWhenSpringContextIsAvailableAndBeansPropertyEnabled() {
             assertNotNull(context);
             assertNotNull(configurationProvider);
             assertNotNull(configurationProvider.getValue("ftsn-415-test-toggle"));
             assertEquals("myValue", configurationProvider.getValue("myKey1"));
-            assertNotNull(experimentProvider);
-            assertNotNull(experimentProvider.getProperties().get("search_experiment"));
-            assertNotNull(experimentService);
-            assertNotNull(experimentService.getExperiments().get("search_experiment"));
         }
     }
 
@@ -60,8 +48,6 @@ class BeanConfigurationTest {
         void shouldNotCreateBeansWhenSpringContextIsNotAvailable() {
             assertThrows(NoSuchBeanDefinitionException.class,
                 () -> applicationContext.getBean(ConfigurationProvider.class));
-            assertThrows(NoSuchBeanDefinitionException.class,
-                () -> applicationContext.getBean(ExperimentService.class));
         }
     }
 

@@ -3,7 +3,6 @@ package de.otto.config;
 import de.otto.config.demo.DemoApplication;
 import de.otto.config.integration.spring.config.BeanConfiguration;
 import de.otto.config.provider.ConfigurationProvider;
-import de.otto.config.service.ExperimentService;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -15,7 +14,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.NoSuchElementException;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -29,19 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class DemoIntegrationTest {
 
     @Autowired
-    private ExperimentService experimentService;
-    @Autowired
     private ConfigurationProvider configurationProvider;
-
-
-    @Test
-    public void shouldReturnExperiments(){
-        // given
-        // when
-        Set<String> allExperimentNames = experimentService.getAllExperimentNames();
-        // then
-        assertThat(allExperimentNames.size()).isNotEqualTo(0);
-    }
 
     @Test
     public void shouldReturnExceptionIfPropertyIsNotPresent() {

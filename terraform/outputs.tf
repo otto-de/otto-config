@@ -2,10 +2,6 @@ output "app_config_id" {
   value = aws_appconfig_application.app_config.id
 }
 
-output "experiments_configuration_profile_id" {
-  value = aws_appconfig_configuration_profile.experiments.configuration_profile_id
-}
-
 output "toggles_configuration_profile_id" {
   value = aws_appconfig_configuration_profile.toggles.configuration_profile_id
 }

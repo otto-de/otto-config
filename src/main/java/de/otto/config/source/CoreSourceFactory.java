@@ -22,7 +22,6 @@ import de.otto.config.source.aws.SecretsManagerSource;
 import de.otto.config.source.aws.SsmSource;
 import de.otto.config.source.file.FileSource;
 import de.otto.config.source.hashicorp.VaultSource;
-import de.otto.config.domain.Experiments;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.appconfigdata.AppConfigDataClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
@@ -48,14 +47,6 @@ public class CoreSourceFactory implements SourceFactory {
                                      "properties", 
                                      Properties.empty, 
                                      Properties.typeReference);
-    }
-
-    @SourceCreator("aws.appconfig.experiments")
-    public static Source<Experiments> createExperimentsSource(Context context) {
-        return createAppConfigSource(context, 
-                                     "experiments", 
-                                     Experiments.empty, 
-                                     Experiments.typeReference);
     }
 
     @SourceCreator("aws.secrets")

@@ -56,7 +56,7 @@ public class AppConfigSourceTest {
         StartConfigurationSessionRequest expectedStartConfigurationSessionRequestRequest = StartConfigurationSessionRequest.builder()
             .applicationIdentifier("test-application")
             .environmentIdentifier("local")
-            .configurationProfileIdentifier("experiments")
+            .configurationProfileIdentifier("properties")
             .build();
 
         StartConfigurationSessionResponse startSessionResponse = StartConfigurationSessionResponse.builder()
@@ -78,7 +78,7 @@ public class AppConfigSourceTest {
         when(appConfigDataClient.getLatestConfiguration(expectedGetLatestConfigurationRequestRequest)).thenReturn(
             getLatestConfigurationResponse);
 
-        appConfigSource = new TestableAwsAppConfigSource("test-application", "local", "experiments",
+        appConfigSource = new TestableAwsAppConfigSource("test-application", "local", "properties",
             appConfigDataClient);
         appConfigSource.load();
     }
@@ -186,7 +186,7 @@ public class AppConfigSourceTest {
             BadRequestException.class);
 
         // when
-        appConfigSource = new TestableAwsAppConfigSource("test-application", "local", "experiments",
+        appConfigSource = new TestableAwsAppConfigSource("test-application", "local", "properties",
             appConfigDataClient);
         assertThrows(SourceException.class, () -> appConfigSource.load());
 

@@ -58,7 +58,7 @@ class PropertySourceTest {
         // given
         mockConfigValue("app.name", "myApp");
         mockConfigValue("mp.config.profile", "local");
-        mockConfigValue("otto.config.sources.enabled", "aws.appconfig.properties,aws.appconfig.toggles,aws.appconfig.experiments,aws.secrets,aws.ssm");
+        mockConfigValue("otto.config.sources.enabled", "aws.appconfig.properties,aws.appconfig.toggles,aws.secrets,aws.ssm");
 
         // when
         PropertySource source = new PropertySource();
@@ -72,7 +72,7 @@ class PropertySourceTest {
         // given
         mockConfigValue("app.name", "myApp");
         mockConfigValue("mp.config.profile", "test");
-        mockConfigValue("otto.config.sources.enabled", "aws.appconfig.properties,aws.appconfig.toggles,aws.appconfig.experiments,aws.secrets,aws.ssm");
+        mockConfigValue("otto.config.sources.enabled", "aws.appconfig.properties,aws.appconfig.toggles,aws.secrets,aws.ssm");
 
         // when
         PropertySource source = new PropertySource();
@@ -86,7 +86,7 @@ class PropertySourceTest {
         // given
         mockConfigValue("app.name", "myApp");
         mockConfigValue("mp.config.profile", null);
-        mockConfigValue("otto.config.sources.enabled", "aws.appconfig.properties,aws.appconfig.toggles,aws.appconfig.experiments,aws.secrets,aws.ssm");
+        mockConfigValue("otto.config.sources.enabled", "aws.appconfig.properties,aws.appconfig.toggles,aws.secrets,aws.ssm");
 
         // when
         PropertySource source = new PropertySource();
@@ -99,7 +99,7 @@ class PropertySourceTest {
     void shouldUseLocalPropertySourceWhenPofileIsMissing() {
         // given
         mockConfigValue("app.name", "myApp");
-        mockConfigValue("otto.config.sources.enabled", "aws.appconfig.properties,aws.appconfig.toggles,aws.appconfig.experiments,aws.secrets,aws.ssm");
+        mockConfigValue("otto.config.sources.enabled", "aws.appconfig.properties,aws.appconfig.toggles,aws.secrets,aws.ssm");
 
         // when
         PropertySource source = new PropertySource();
@@ -114,7 +114,7 @@ class PropertySourceTest {
             // given
             mockConfigValue("app.name", "myApp");
             mockConfigValue("mp.config.profile", "live");
-            mockConfigValue("otto.config.sources.enabled", "aws.appconfig.properties,aws.appconfig.toggles,aws.appconfig.experiments,aws.secrets,aws.ssm");
+            mockConfigValue("otto.config.sources.enabled", "aws.appconfig.properties,aws.appconfig.toggles,aws.secrets,aws.ssm");
 
             // when
             PropertySource source = new PropertySource();

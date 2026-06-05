@@ -157,7 +157,7 @@ public class CoreSourceFactoryTest {
         withMockedAwsClients(() -> {
             // given
             ConfigurationCache<String> configuration = new ConfigurationCache<>(Map.of(
-                    "otto.config.sources.enabled", "aws.appconfig.properties,aws.appconfig.toggles,aws.appconfig.experiments,aws.secrets,aws.ssm,hashicorp.vault",
+                    "otto.config.sources.enabled", "aws.appconfig.properties,aws.appconfig.toggles,aws.secrets,aws.ssm,hashicorp.vault",
                     "otto.config.aws.secrets.arn", "arn:aws:secretsmanager:123",
                     "otto.config.hashicorp.vault.url", "http://localhost:8200",
                     "otto.config.hashicorp.vault.token", "my-token",
@@ -169,13 +169,13 @@ public class CoreSourceFactoryTest {
             List<Source<? extends Configuration<?>>> sources = SourceDiscovery.discover(context);
 
             // then
-            assertThat(sources, hasSize(6));
+            assertThat(sources, hasSize(5));
             
             // Check AppConfig sources
             long appConfigSourceCount = sources.stream()
                     .filter(source -> source instanceof AppConfigSource)
                     .count();
-            assertThat(appConfigSourceCount, is(3L)); // properties, toggles, experiments
+            assertThat(appConfigSourceCount, is(2L)); // properties, toggles
             
             // Check combined property sources
             List<CombinedPropertySource> combinedSources = sources.stream()
