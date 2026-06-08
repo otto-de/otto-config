@@ -32,33 +32,19 @@ jobs:
       - name: Build and test
         run: ./gradlew clean check
       
-      - name: Publish to local staging
+      - name: Publish to GitHub Packages
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: ./gradlew publishMavenJavaPublicationToGitHubPackagesRepository
+      
+      - name: Publish to Maven Central
+        env:
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
+          MAVEN_CENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
           GPG_SIGNING_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
           GPG_SIGNING_PASSWORD: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
-        run: ./gradlew publish
-      
-      - name: Deploy to GitHub Packages
-        env:
-          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          JRELEASER_GPG_SECRET_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
-          JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
-          JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
-          JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
-          JRELEASER_DEPLOY_MAVEN_GITHUB_ACTIVE: ALWAYS
-          JRELEASER_DEPLOY_MAVEN_MAVENCENTRAL_ACTIVE: NEVER
-        run: ./gradlew jreleaserDeploy
-      
-      - name: Deploy to Maven Central
-        env:
-          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          JRELEASER_GPG_SECRET_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
-          JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
-          JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
-          JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
-          JRELEASER_DEPLOY_MAVEN_GITHUB_ACTIVE: NEVER
-          JRELEASER_DEPLOY_MAVEN_MAVENCENTRAL_ACTIVE: ALWAYS
-        run: ./gradlew jreleaserDeploy
+        run: ./gradlew publishMavenJavaPublicationToMavenCentralRepository
       
       - name: Extract version from tag
         id: version

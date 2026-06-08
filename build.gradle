@@ -124,6 +124,22 @@ publishing {
     
     repositories {
         maven {
+            name = 'GitHubPackages'
+            url = uri("https://maven.pkg.github.com/otto-de/otto-config")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR") ?: findProperty("gpr.user")
+                password = System.getenv("GITHUB_TOKEN") ?: findProperty("gpr.token")
+            }
+        }
+        maven {
+            name = 'MavenCentral'
+            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+            credentials {
+                username = System.getenv("MAVEN_CENTRAL_USERNAME") ?: findProperty("mavenCentral.username")
+                password = System.getenv("MAVEN_CENTRAL_PASSWORD") ?: findProperty("mavenCentral.password")
+            }
+        }
+        maven {
             name = 'staging'
             // Publish to local staging directory for JReleaser to upload
             url = layout.buildDirectory.dir('staging-deploy')
