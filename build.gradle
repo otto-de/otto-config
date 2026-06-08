@@ -155,7 +155,7 @@ jreleaser {
             github {
                 app {
                     snapshotSupported = true
-                    active = 'ALWAYS'
+                    active = System.getenv('JRELEASER_DEPLOY_MAVEN_GITHUB_ACTIVE') ?: 'ALWAYS'
                     url = "https://maven.pkg.github.com/otto-de/otto-config"
                     stagingRepository('build/staging-deploy')
                 }
@@ -163,7 +163,7 @@ jreleaser {
             mavenCentral {
                 app {
                     snapshotSupported = false
-                    active = 'ALWAYS'
+                    active = System.getenv('JRELEASER_DEPLOY_MAVEN_MAVENCENTRAL_ACTIVE') ?: 'ALWAYS'
                     url = 'https://central.sonatype.com/api/v1/publisher'
                     stagingRepository('build/staging-deploy')
                     retryDelay = 10

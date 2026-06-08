@@ -63,7 +63,9 @@ jobs:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           JRELEASER_GPG_SECRET_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
           JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
-        run: ./gradlew jreleaserDeploy --deployer-name=github --exclude-deployer-name=mavenCentral
+          JRELEASER_DEPLOY_MAVEN_GITHUB_ACTIVE: ALWAYS
+          JRELEASER_DEPLOY_MAVEN_MAVENCENTRAL_ACTIVE: NEVER
+        run: ./gradlew jreleaserDeploy
       
       - name: Deploy to Maven Central
         env:
@@ -71,7 +73,9 @@ jobs:
           JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
           JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
           JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
-        run: ./gradlew jreleaserDeploy --deployer-name=mavenCentral --exclude-deployer-name=github
+          JRELEASER_DEPLOY_MAVEN_GITHUB_ACTIVE: NEVER
+          JRELEASER_DEPLOY_MAVEN_MAVENCENTRAL_ACTIVE: ALWAYS
+        run: ./gradlew jreleaserDeploy
       
       - name: Create git tag
         if: ${{ inputs.create_tag }}
