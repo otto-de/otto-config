@@ -43,7 +43,7 @@ jobs:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           JRELEASER_GPG_SECRET_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
           JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
-        run: ./gradlew jreleaserDeployMavenGithub
+        run: ./gradlew jreleaserDeploy --deployer-name=github
       
       - name: Deploy to Maven Central
         env:
@@ -51,7 +51,7 @@ jobs:
           JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
           JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
           JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
-        run: ./gradlew jreleaserDeployMavenMavenCentral
+        run: ./gradlew jreleaserDeploy --deployer-name=mavenCentral
       
       - name: Extract version from tag
         id: version
