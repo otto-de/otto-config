@@ -52,14 +52,26 @@ jobs:
       - name: Build and test
         run: ./gradlew clean check
       
-      - name: Publish to GitHub Packages and Maven Central
+      - name: Publish to local staging
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_SIGNING_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
           GPG_SIGNING_PASSWORD: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
-          MAVEN_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
         run: ./gradlew publish
+      
+      - name: Deploy to GitHub Packages
+        env:
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JRELEASER_GPG_SECRET_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
+          JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
+        run: ./gradlew jreleaserDeployMavenGithub
+      
+      - name: Deploy to Maven Central
+        env:
+          JRELEASER_GPG_SECRET_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
+          JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
+          JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
+          JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
+        run: ./gradlew jreleaserDeployMavenMavenCentral
       
       - name: Create git tag
         if: ${{ inputs.create_tag }}
