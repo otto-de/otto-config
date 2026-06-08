@@ -94,6 +94,8 @@ test {
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            from components.java
+            
             pom {
                 name = 'Otto Config'
                 description = 'Configuration library for AWS AppConfig, Secrets Manager, and Parameter Store integration'
