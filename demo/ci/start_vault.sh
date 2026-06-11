@@ -30,24 +30,24 @@ echo 'path "cftsearch/data/*" {
 }
 path "cftsearch/metadata/*" {
   capabilities = ["list", "read"]
-}' | docker exec -i -e VAULT_ADDR='http://127.0.0.1:8200' -e VAULT_TOKEN='myroot' vault vault policy write zealot-policy -
+}' | docker exec -i -e VAULT_ADDR='http://127.0.0.1:8200' -e VAULT_TOKEN='myroot' vault vault policy write otto-config-policy -
 
 # Create an AppRole
-docker exec -e VAULT_ADDR='http://127.0.0.1:8200' -e VAULT_TOKEN='myroot' vault vault write auth/approle/role/zealot \
-    policies="zealot-policy" \
+docker exec -e VAULT_ADDR='http://127.0.0.1:8200' -e VAULT_TOKEN='myroot' vault vault write auth/approle/role/otto-config \
+    policies="otto-config-policy" \
     token_ttl=6m \
     token_max_ttl=10m
 
 # Get role_id
-VAULT_ROLE_ID=$(docker exec -e VAULT_ADDR='http://127.0.0.1:8200' -e VAULT_TOKEN='myroot' vault vault read -field=role_id auth/approle/role/zealot/role-id)
+VAULT_ROLE_ID=$(docker exec -e VAULT_ADDR='http://127.0.0.1:8200' -e VAULT_TOKEN='myroot' vault vault read -field=role_id auth/approle/role/otto-config/role-id)
 echo "role_id: $VAULT_ROLE_ID"
 
 # Get secret_id
-VAULT_SECRET_ID=$(docker exec -e VAULT_ADDR='http://127.0.0.1:8200' -e VAULT_TOKEN='myroot' vault vault write -field=secret_id -f auth/approle/role/zealot/secret-id)
+VAULT_SECRET_ID=$(docker exec -e VAULT_ADDR='http://127.0.0.1:8200' -e VAULT_TOKEN='myroot' vault vault write -field=secret_id -f auth/approle/role/otto-config/secret-id)
 echo "secret_id: $VAULT_SECRET_ID"
 
 # Write a test secret
-docker exec -e VAULT_ADDR='http://127.0.0.1:8200' -e VAULT_TOKEN='myroot' vault vault kv put cftsearch/service/zealot/develop/auth username=admin password=secret
+docker exec -e VAULT_ADDR='http://127.0.0.1:8200' -e VAULT_TOKEN='myroot' vault vault kv put cftsearch/service/otto-config/develop/auth auth_client_id=admin auth_client_secret=secret
 
 # Test AppRole authentication and reading
 echo ""
@@ -57,7 +57,7 @@ echo "AppRole token: $APP_TOKEN"
 
 echo ""
 echo "===== Testing read with AppRole token (raw API) ====="
-docker exec -e VAULT_ADDR='http://127.0.0.1:8200' -e VAULT_TOKEN=$APP_TOKEN vault vault read cftsearch/data/service/zealot/develop/auth
+docker exec -e VAULT_ADDR='http://127.0.0.1:8200' -e VAULT_TOKEN=$APP_TOKEN vault vault read cftsearch/data/service/otto-config/develop/auth
 
 if [ $? -eq 0 ]; then
     echo ""

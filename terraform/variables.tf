@@ -16,7 +16,7 @@ variable "properties_configuration_content" {
 }
 
 variable "change_notification_enabled" {
-  description = "When true, creates an SQS queue, EventBridge rules for AppConfig/SecretsManager/SSM, and the necessary IAM policy so that the Zealot library can receive push notifications instead of relying solely on periodic polling."
+  description = "When true, creates an SQS queue, EventBridge rules for AppConfig/SecretsManager/SSM, and the necessary IAM policy so that the Otto Config library can receive push notifications instead of relying solely on periodic polling."
   type        = bool
   default     = false
 }

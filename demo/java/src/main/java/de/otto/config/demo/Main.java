@@ -8,9 +8,9 @@ import de.otto.config.source.CoreSourceFactory;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Plain Java demonstration of manual Zealot integration.
+ * Plain Java demonstration of manual Otto Config integration.
  * 
- * This example shows how to integrate Zealot without any framework (Spring, Helidon, etc.):
+ * This example shows how to integrate Otto Config without any framework (Spring, Helidon, etc.):
  * 1. Create a Configuration<String> instance with your config values
  * 2. Create a Context using Context.from(appName, profile, configuration)
  * 3. Build ConfigurationProvider from the Context
@@ -20,9 +20,9 @@ import lombok.extern.slf4j.Slf4j;
 public class Main {
     
     public static void main(String[] args) {
-        log.info("Starting plain Java Zealot demo...");
+        log.info("Starting plain Java Otto Config demo...");
         
-        Context context = Context.from("zealot");
+        Context context = Context.from("otto-config");
         ConfigurationProvider configurationProvider = ConfigurationProvider.builder()
                                                                            .context(context)
                                                                            .source(CoreSourceFactory.createPropertiesSource(context))

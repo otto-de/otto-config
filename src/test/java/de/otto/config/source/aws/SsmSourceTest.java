@@ -48,7 +48,7 @@ public class SsmSourceTest {
                                  .value("https://deineanderemudder.de")
                                  .build(),
                         Parameter.builder()
-                                 .name("/search/develop/zealot/config/service.url")
+                                 .name("/search/develop/otto-config/config/service.url")
                                  .value("https://otto.config.de")
                                  .build(),
                         Parameter.builder()
@@ -61,7 +61,7 @@ public class SsmSourceTest {
         when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class))).thenReturn(response);
 
         Source<Properties> ssmPropertySource = SsmSource.builder()
-                                                    .applicationIdentifier("zealot")
+                                                    .applicationIdentifier("otto-config")
                                                     .ssmClient(ssmClient)
                                                     .ssmPathPrefix("/")
                                                     .build();
@@ -75,7 +75,7 @@ public class SsmSourceTest {
         assertThat(result.getProperties(), hasEntry("loki/service.url", "https://deinemudder.de"));
         assertThat(result.getProperties(), hasEntry("/search/develop/ash/config/service.url", "https://deineanderemudder.de"));
         assertThat(result.getProperties(), hasEntry("ash/service.url", "https://deineanderemudder.de"));
-        assertThat(result.getProperties(), hasEntry("/search/develop/zealot/config/service.url", "https://otto.config.de"));
+        assertThat(result.getProperties(), hasEntry("/search/develop/otto-config/config/service.url", "https://otto.config.de"));
         assertThat(result.getProperties(), hasEntry("service.url", "https://otto.config.de"));
         assertThat(result.getProperties(), hasEntry("/cassandra/otto_api_credentials.json", "supergeheim"));
     }
@@ -90,7 +90,7 @@ public class SsmSourceTest {
         when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class))).thenReturn(response);
 
         Source<Properties> ssmPropertySource = SsmSource.builder()
-                                                        .applicationIdentifier("zealot")
+                                                        .applicationIdentifier("otto-config")
                                                         .ssmClient(ssmClient)
                                                         .build();
 

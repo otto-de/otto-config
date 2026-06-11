@@ -67,7 +67,7 @@ public class SsmSource extends PropertySource {
             return new Properties(properties);
         } catch (Exception e) {
             System.out.println("Exception reading ssm " + e.getMessage());
-            throw new SourceException("Could not load Zealot properties from SSM", e);
+            throw new SourceException("Could not load Otto Config properties from SSM", e);
         }
     }
 

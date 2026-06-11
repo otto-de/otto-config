@@ -108,10 +108,10 @@ class BeanConfigurationTest {
         mockConfigValue("mp.config.profile", profile);
 
         // when
-        BeanConfiguration zealotConfiguration = new BeanConfiguration();
+        BeanConfiguration ottoConfigConfiguration = new BeanConfiguration();
 
         // then
-        assertThat(zealotConfiguration.configurationProvider(), is(notNullValue()));
+        assertThat(ottoConfigConfiguration.configurationProvider(), is(notNullValue()));
     }
 
     @ParameterizedTest
@@ -123,8 +123,8 @@ class BeanConfigurationTest {
         mockConfigValue("mp.config.profile", profile);
 
         // when
-        BeanConfiguration zealotConfiguration = new BeanConfiguration();
-        ConfigurationProvider configurationProvider = zealotConfiguration.configurationProvider();
+        BeanConfiguration ottoConfigConfiguration = new BeanConfiguration();
+        ConfigurationProvider configurationProvider = ottoConfigConfiguration.configurationProvider();
 
         // then
         assertThat(configurationProvider.getValue("myKey1"), is("myValue"));

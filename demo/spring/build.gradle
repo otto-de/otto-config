@@ -1,9 +1,20 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.springframework.boot' version '3.5.5'
+    id 'io.spring.dependency-management' version '1.1.4'
+}
+
 java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
 }
 
 apply from: 'gradle/integrationTest.gradle'
+
+application {
+    mainClass = 'de.otto.config.demo.DemoApplication'
+}
 
 dependencies {
     implementation project(':') 
@@ -17,10 +28,7 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-sourceSets {
-    main {
-        resources {
-            srcDirs = ['src/main/resources']
-        }
-    }
-}
+// Ensure resources are processed before running
+bootRun.dependsOn processResources
+run.dependsOn processResources
+test.dependsOn processResources

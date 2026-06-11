@@ -32,7 +32,7 @@ public class CoreSourceFactoryTest {
             ConfigurationCache<String> configuration = new ConfigurationCache<>(Map.of(
                     "otto.config.sources.enabled", "aws.appconfig.properties,aws.appconfig.toggles",
                     "otto.config.aws.secrets.arn", "arn:aws:secretsmanager:123"));
-            Context context = Context.from("zealot", "develop", configuration);
+            Context context = Context.from("otto-config", "develop", configuration);
 
             // when
             List<Source<? extends Configuration<?>>> sources = SourceDiscovery.discover(context);
@@ -51,7 +51,7 @@ public class CoreSourceFactoryTest {
                     "otto.config.sources.enabled", "aws.secrets",
                     "otto.config.aws.secrets.arn", "arn:aws:secretsmanager:123"
             ));
-            Context context = Context.from("zealot", "develop", configuration);
+            Context context = Context.from("otto-config", "develop", configuration);
 
             // when
             List<Source<? extends Configuration<?>>> sources = SourceDiscovery.discover(context);
@@ -74,7 +74,7 @@ public class CoreSourceFactoryTest {
                     "otto.config.sources.enabled", "aws.ssm",
                     "otto.config.aws.secrets.arn", "arn:aws:secretsmanager:123"
             ));
-            Context context = Context.from("zealot", "develop", configuration);
+            Context context = Context.from("otto-config", "develop", configuration);
 
             // when
             List<Source<? extends Configuration<?>>> sources = SourceDiscovery.discover(context);
@@ -99,7 +99,7 @@ public class CoreSourceFactoryTest {
                     "otto.config.hashicorp.vault.token", "my-token",
                     "otto.config.hashicorp.vault.path", "my-secret"
             ));
-            Context context = Context.from("zealot", "develop", configuration);
+            Context context = Context.from("otto-config", "develop", configuration);
 
             // when
             List<Source<? extends Configuration<?>>> sources = SourceDiscovery.discover(context);
@@ -122,7 +122,7 @@ public class CoreSourceFactoryTest {
                 "otto.config.sources.enabled", "aws.appconfig.properties,aws.appconfig.toggles",
                 "otto.config.aws.secrets.arn", "arn:aws:secretsmanager:123"
         ));
-        Context context = Context.from("zealot", "local", configuration);
+        Context context = Context.from("otto-config", "local", configuration);
 
         // when
         List<Source<? extends Configuration<?>>> sources = SourceDiscovery.discover(context);
@@ -163,7 +163,7 @@ public class CoreSourceFactoryTest {
                     "otto.config.hashicorp.vault.token", "my-token",
                     "otto.config.hashicorp.vault.path", "my-secret"
             ));
-            Context context = Context.from("zealot", "develop", configuration);
+            Context context = Context.from("otto-config", "develop", configuration);
 
             // when
             List<Source<? extends Configuration<?>>> sources = SourceDiscovery.discover(context);
@@ -210,7 +210,7 @@ public class CoreSourceFactoryTest {
                     "otto.config.sources.enabled", "",
                     "otto.config.aws.secrets.arn", "arn:aws:secretsmanager:123"
             ));
-            Context context = Context.from("zealot", "develop", configuration);
+            Context context = Context.from("otto-config", "develop", configuration);
 
             // when
             List<Source<? extends Configuration<?>>> sources = SourceDiscovery.discover(context);

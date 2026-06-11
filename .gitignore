@@ -27,3 +27,4 @@ bin
 **/asg_capacity.txt
 **/*.tfstate
 .env
+/ci/

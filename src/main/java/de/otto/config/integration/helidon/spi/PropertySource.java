@@ -17,7 +17,7 @@ import de.otto.config.provider.ConfigurationProvider;
 @Slf4j
 @Getter
 public class PropertySource implements ConfigSource {
-    private static final String NAME = "zealot";
+    public static final String NAME = "otto-config";
     private static final int ORDINAL = 500; //MpEnvironmentVariablesSource has 300 and MpSystemPropertiesSource has 400
     private final Context context;
     private final ConfigurationProvider configurationProvider;

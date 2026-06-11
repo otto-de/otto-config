@@ -26,18 +26,18 @@ public class RefreshScheduler implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        log.info("Starting Zealot scheduler");
+        log.info("Starting Otto Config scheduler");
     }
 
     @Scheduled(initialDelay = 5, fixedDelay = 5, timeUnit = TimeUnit.MINUTES)
     public void refresh() {
-        log.debug("Refreshing Zealot configurations");
+        log.debug("Refreshing Otto Config configurations");
         this.context.refresh();
     }
 
     @Scheduled(initialDelay = 10, fixedDelay = 10, timeUnit = TimeUnit.SECONDS)
     public void pollAndRefresh() {
-        log.debug("Polling and refreshing Zealot configurations");
+        log.debug("Polling and refreshing Otto Config configurations");
         this.context.pollAndRefresh();
     }
 }

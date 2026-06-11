@@ -40,19 +40,11 @@ run {
     systemProperty "logback.configurationFile", System.getProperty('logback.configurationFile', "logback-local.xml")
     systemProperty "mp.config.profile", "develop"
     systemProperty "otto.config.aws.secrets.arn", "arn:aws:secretsmanager:eu-central-1:926377890519:secret:marvin-tLk2it"
-    systemProperty "app.ssm.paths", "/search/develop/zealot/config/"
+    systemProperty "app.ssm.paths", "/search/develop/otto-config/config/"
 }
 
 tasks.named('test') {
     useJUnitPlatform()
-}
-
-sourceSets {
-    main {
-        resources {
-            srcDirs = ['src/main/resources']
-        }
-    }
 }
 
 // define a custom task to copy all dependencies in the runtime classpath

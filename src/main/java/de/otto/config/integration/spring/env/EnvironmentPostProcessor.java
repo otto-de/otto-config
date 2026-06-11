@@ -7,6 +7,6 @@ public class EnvironmentPostProcessor implements org.springframework.boot.env.En
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-        environment.getPropertySources().addAfter("systemEnvironment", new PropertySource("zealot", environment));
+        environment.getPropertySources().addAfter("systemEnvironment", new PropertySource(environment));
     }
 }

@@ -78,7 +78,7 @@ public class SecretsManagerSource extends PropertySource {
 
             return new Properties(responseMap);
         } catch (Exception e) {
-            throw new SourceException("Could not load Zealot properties from Secrets Manager", e);
+            throw new SourceException("Could not load Otto Config properties from Secrets Manager", e);
         }
     }
 

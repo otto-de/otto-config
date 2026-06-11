@@ -839,25 +839,16 @@ Use the following `tasks.json` configuration to start Vault locally for developm
             "type": "java",
             "name": "DemoApplication - Java",
             "request": "launch",
-            "mainClass": "demo.de.otto.config.Main",
+            "mainClass": "de.otto.config.demo.Main",
             "projectName": "java",
             "env": {
-                "AWS_PROFILE": "search-develop-admin",
-                "AWS_REGION": "eu-central-1",
-                "OTTO_CONFIG_HASHICORP_VAULT_AUTH_AWS_ROLE_ARN": "arn:aws:iam::926377890519:role/pipeline-role"
-            }
-        },
-        {
-            "type": "java",
-            "name": "DemoApplication - Java (Local Vault)",
-            "request": "launch",
-            "mainClass": "demo.de.otto.config.Main",
-            "projectName": "java",
-            "env": {
-                "AWS_PROFILE": "search-develop-admin",
+                "AWS_PROFILE": "<aws profile>",
                 "AWS_REGION": "eu-central-1",
                 "OTTO_CONFIG_HASHICORP_VAULT_AUTH_TYPE": "approle",
-                "OTTO_CONFIG_HASHICORP_VAULT_URL": "http://localhost:8200"
+                "OTTO_CONFIG_HASHICORP_VAULT_URL": "http://localhost:8200",
+                "OTTO_CONFIG_AWS_REFRESH_ENABLED": "true",
+                "OTTO_CONFIG_AWS_SQS_QUEUE_URL": "https://sqs.eu-central-1.amazonaws.com/<account id>/otto-config-changes",
+                "OTTO_CONFIG_SOURCES_ENABLED": "aws.appconfig.properties,aws.appconfig.toggles,aws.appconfig.experiments,aws.secrets,aws.ssm"
             },
             "preLaunchTask": "vault",
             "envFile": "${workspaceFolder}/.env"
@@ -870,23 +861,13 @@ Use the following `tasks.json` configuration to start Vault locally for developm
             "projectName": "helidon",
             "vmArgs": "-Dlogback.configurationFile=./demo/helidon/src/main/resources/logback-local.xml -Dotel.java.global-autoconfigure.enabled=true -Dmp.config.profile=develop",
             "env": {
-                "AWS_PROFILE": "search-develop-admin",
-                "AWS_REGION": "eu-central-1",
-                "OTTO_CONFIG_HASHICORP_VAULT_AUTH_AWS_ROLE_ARN": "arn:aws:iam::926377890519:role/pipeline-role"
-            }
-        },
-        {
-            "type": "java",
-            "name": "DemoApplication - Helidon (Local Vault)",
-            "request": "launch",
-            "mainClass": "io.helidon.microprofile.cdi.Main",
-            "projectName": "helidon",
-            "vmArgs": "-Dlogback.configurationFile=./demo/helidon/src/main/resources/logback-local.xml -Dotel.java.global-autoconfigure.enabled=true -Dmp.config.profile=develop",
-            "env": {
-                "AWS_PROFILE": "search-develop-admin",
+                "AWS_PROFILE": "<aws profile>",
                 "AWS_REGION": "eu-central-1",
                 "OTTO_CONFIG_HASHICORP_VAULT_AUTH_TYPE": "approle",
-                "OTTO_CONFIG_HASHICORP_VAULT_URL": "http://localhost:8200"
+                "OTTO_CONFIG_HASHICORP_VAULT_URL": "http://localhost:8200",
+                "OTTO_CONFIG_AWS_REFRESH_ENABLED": "true",
+                "OTTO_CONFIG_AWS_SQS_QUEUE_URL": "https://sqs.eu-central-1.amazonaws.com/<account id>/otto-config-changes",
+                "OTTO_CONFIG_SOURCES_ENABLED": "aws.appconfig.properties,aws.appconfig.toggles,aws.appconfig.experiments,aws.secrets,aws.ssm"
             },
             "preLaunchTask": "vault",
             "envFile": "${workspaceFolder}/.env"
@@ -895,31 +876,19 @@ Use the following `tasks.json` configuration to start Vault locally for developm
             "type": "java",
             "name": "DemoApplication - Spring",
             "request": "launch",
-            "mainClass": "demo.de.otto.config.DemoApplication",
+            "mainClass": "de.otto.config.demo.DemoApplication",
             "projectName": "spring",
             "args": [
                 "--spring.profiles.active=develop"
             ],
             "env": {
-                "AWS_PROFILE": "search-develop-admin",
-                "AWS_REGION": "eu-central-1",
-                "OTTO_CONFIG_HASHICORP_VAULT_AUTH_AWS_ROLE_ARN": "arn:aws:iam::926377890519:role/pipeline-role"
-            }
-        },
-        {
-            "type": "java",
-            "name": "DemoApplication - Spring (Local Vault)",
-            "request": "launch",
-            "mainClass": "demo.de.otto.config.DemoApplication",
-            "projectName": "spring",
-            "args": [
-                "--spring.profiles.active=develop"
-            ],
-            "env": {
-                "AWS_PROFILE": "search-develop-admin",
+                "AWS_PROFILE": "<aws profile>",
                 "AWS_REGION": "eu-central-1",
                 "OTTO_CONFIG_HASHICORP_VAULT_AUTH_TYPE": "approle",
-                "OTTO_CONFIG_HASHICORP_VAULT_URL": "http://localhost:8200"
+                "OTTO_CONFIG_HASHICORP_VAULT_URL": "http://localhost:8200",
+                "OTTO_CONFIG_AWS_REFRESH_ENABLED": "true",
+                "OTTO_CONFIG_AWS_SQS_QUEUE_URL": "https://sqs.eu-central-1.amazonaws.com/<account id>/otto-config-changes",
+                "OTTO_CONFIG_SOURCES_ENABLED": "aws.appconfig.properties,aws.appconfig.toggles,aws.appconfig.experiments,aws.secrets,aws.ssm"
             },
             "preLaunchTask": "vault",
             "envFile": "${workspaceFolder}/.env"

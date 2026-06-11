@@ -203,7 +203,7 @@ data "aws_iam_policy_document" "sqs_consumer" {
   count = local.create_notifications
 
   statement {
-    sid    = "ZealotSqsConsumer"
+    sid    = "SqsConsumer"
     effect = "Allow"
     actions = [
       "sqs:ReceiveMessage",

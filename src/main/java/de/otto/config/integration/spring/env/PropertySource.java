@@ -9,11 +9,12 @@ import lombok.Getter;
 
 @Getter
 public class PropertySource extends org.springframework.core.env.PropertySource<String> {
+    public static final String NAME = "otto-config";
     private final Context context;
     private final ConfigurationProvider configurationProvider;
 
-    public PropertySource(String name, ConfigurableEnvironment environment) {
-        super(name);
+    public PropertySource(ConfigurableEnvironment environment) {
+        super(NAME);
 
         this.context = createContext(environment);
         this.configurationProvider = ConfigurationProvider.builder()

@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# Example service role for a Zealot-based application
+# Example service role for a Otto Config based application
 #
 # In a real project this role would already exist (created by your platform /
 # infrastructure team).  It is shown here as a complete example so you can see
@@ -8,11 +8,11 @@
 # Responsibilities:
 #   1. Trust policy   – allows ECS tasks (or EC2 instances running your JVM) to
 #                       assume the role.
-#   2. Zealot policy  – minimum read permissions for every AWS source type that
-#                       Zealot supports: AppConfig, Secrets Manager, and SSM.
+#   2. Otto Config policy  – minimum read permissions for every AWS source type that
+#                       Otto Config supports: AppConfig, Secrets Manager, and SSM.
 #   3. Vault auth     – sts:GetCallerIdentity so that VaultAwsAuthenticator can
 #                       prove its identity to the HashiCorp Vault AWS auth backend.
-#   4. SQS consumer   – automatically attached by the reusable Zealot Terraform
+#   4. SQS consumer   – automatically attached by the reusable Otto Config Terraform
 #                       module (terraform/eventbridge.tf) when
 #                       change_notification_enabled = true.
 # ---------------------------------------------------------------------------
@@ -39,13 +39,13 @@ data "aws_iam_policy_document" "service_role_trust" {
 resource "aws_iam_role" "service_role" {
   name               = "${var.service}-service-role"
   assume_role_policy = data.aws_iam_policy_document.service_role_trust.json
-  description        = "Runtime role for the ${var.service} application (Zealot-managed config sources)"
+  description        = "Runtime role for the ${var.service} application (Otto-Config-managed config sources)"
 }
 
 # ---------------------------------------------------------------------------
-# Zealot source permissions
+# Otto Config source permissions
 #
-# Grants the minimum set of actions required by Zealot's AWS source
+# Grants the minimum set of actions required by Otto Config's AWS source
 # implementations:
 #   - AppConfigSource       → appconfig + appconfigdata APIs
 #   - SecretsManagerSource  → secretsmanager:GetSecretValue
@@ -53,7 +53,7 @@ resource "aws_iam_role" "service_role" {
 #   - VaultAwsAuthenticator → sts:GetCallerIdentity (does not call STS itself;
 #                             the Vault server calls back with this identity)
 # ---------------------------------------------------------------------------
-data "aws_iam_policy_document" "zealot_sources" {
+data "aws_iam_policy_document" "otto_config_sources" {
   # AppConfig – start a session and poll for configuration updates
   statement {
     sid    = "AppConfigRead"
@@ -103,13 +103,13 @@ data "aws_iam_policy_document" "zealot_sources" {
   }
 }
 
-resource "aws_iam_policy" "zealot_sources" {
-  name        = "${var.service}-zealot-sources"
-  description = "Minimum permissions required by all Zealot AWS configuration sources for ${var.service}"
-  policy      = data.aws_iam_policy_document.zealot_sources.json
+resource "aws_iam_policy" "otto_config_sources" {
+  name        = "${var.service}-otto-config-sources"
+  description = "Minimum permissions required by all Otto Config AWS configuration sources for ${var.service}"
+  policy      = data.aws_iam_policy_document.otto_config_sources.json
 }
 
-resource "aws_iam_role_policy_attachment" "zealot_sources" {
+resource "aws_iam_role_policy_attachment" "otto_config_sources" {
   role       = aws_iam_role.service_role.name
-  policy_arn = aws_iam_policy.zealot_sources.arn
+  policy_arn = aws_iam_policy.otto_config_sources.arn
 }

@@ -20,16 +20,16 @@ public class RefreshScheduler {
         this.context = context;
         this.enabled = enabled;
         if (enabled) {
-            log.info("Starting Zealot scheduler");
+            log.info("Starting Otto Config scheduler");
         } else {
-            log.info("Zealot scheduler is disabled");
+            log.info("Otto Config scheduler is disabled");
         }
     }
 
     @FixedRate(value = "PT5M")
     public void refresh() {
         if (enabled) {
-            log.debug("Refreshing Zealot configurations");
+            log.debug("Refreshing Otto Config configurations");
             this.context.refresh();
         }
     }
@@ -37,7 +37,7 @@ public class RefreshScheduler {
     @FixedRate(value = "PT10S")
     public void pollAndRefresh() {
         if (enabled) {
-            log.debug("Polling and refreshing Zealot configurations");
+            log.debug("Polling and refreshing Otto Config configurations");
             this.context.pollAndRefresh();
         }
     }

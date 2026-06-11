@@ -34,9 +34,9 @@ public class BeanConfiguration {
     public PropertySource propertySource(ConfigurableEnvironment environment) {
         return environment.getPropertySources()
                           .stream()
-                          .filter(ps -> ps.getName().equals("zealot"))
+                          .filter(ps -> ps.getName().equals(PropertySource.NAME))
                           .findFirst()
                           .map(ps -> (PropertySource) ps)
-                          .orElseGet(() -> new PropertySource("zealot", environment));
+                          .orElseGet(() -> new PropertySource(environment));
     }
 }
