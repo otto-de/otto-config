@@ -28,7 +28,6 @@ module "appconfig_service" {
 
   # Optional: enable event-driven refresh via EventBridge → SQS
   change_notification_enabled           = true
-  change_notification_consumer_role_arn = aws_iam_role.service_role.arn
 }
 ```
 
@@ -322,7 +321,6 @@ module "appconfig_service" {
   # ... other configuration ...
   
   change_notification_enabled           = true
-  change_notification_consumer_role_arn = aws_iam_role.service_role.arn
 }
 ```
 

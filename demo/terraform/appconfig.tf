@@ -8,5 +8,4 @@ module "appconfig_service" {
 
   # Enable push-based configuration refresh: EventBridge → SQS for AppConfig, SecretsManager, and SSM
   change_notification_enabled           = true
-  change_notification_consumer_role_arn = aws_iam_role.service_role.arn
 }
