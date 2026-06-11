@@ -154,8 +154,8 @@ Create a class that extends the `PropertySource` abstract class. For example, he
 ```java
 package com.mycompany.source;
 
-import domain.de.otto.config.Properties;
-import source.de.otto.config.PropertySource;
+import de.otto.config.domain.Properties;
+import de.otto.config.source.PropertySource;
 
 @Slf4j
 @Builder
@@ -191,8 +191,8 @@ You can register your custom source in two ways:
     ```java
     package com.mycompany.config;
 
-    import core.de.otto.config.Context;
-    import source.core.de.otto.config.SourceFactory;
+    import de.otto.config.core.Context;
+    import de.otto.config.source.SourceFactory;
 
     @Slf4j
     public class MySourceFactory implements SourceFactory {
@@ -251,8 +251,8 @@ If your source needs runtime parameters or should only be added conditionally, r
 
 ```java
 // Example: Registering a custom source at runtime
-import core.de.otto.config.Context;
-import provider.de.otto.config.ConfigurationProvider;
+import de.otto.config.core.Context;
+import de.otto.config.provider.ConfigurationProvider;
 
 // Inject Context for use in building your source
 @Autowired // or @Inject
@@ -286,8 +286,8 @@ After defining your custom type (e.g., `MyCustomType`), implement a custom sourc
 ```java
 package com.mycompany.sources;
 
-import core.de.otto.config.Context;
-import source.core.de.otto.config.Source;
+import de.otto.config.core.Context;
+import de.otto.config.source.Source;
 import com.mycompany.domain.MyCustomType;
 import lombok.Builder;
 
@@ -319,8 +319,8 @@ Implement your custom provider by extending the `Provider<T>` abstract class, pa
 package com.mycompany.providers;
 
 import java.util.Map;
-import core.de.otto.config.Context;
-import provider.core.de.otto.config.Provider;
+import de.otto.config.core.Context;
+import de.otto.config.provider.Provider;
 import com.mycompany.domain.MyCustomType;
 import lombok.Builder;
 
@@ -343,7 +343,7 @@ To use your custom provider in a dependency injection framework like Spring or H
 
 ```java
 import com.mycompany.providers.MyCustomProvider;
-import core.de.otto.config.Context;
+import de.otto.config.core.Context;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -363,7 +363,7 @@ public class MyCustomProviderConfig {
 
 ```java
 import com.mycompany.providers.MyCustomProvider;
-import core.de.otto.config.Context;
+import de.otto.config.core.Context;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 
