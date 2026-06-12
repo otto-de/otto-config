@@ -18,7 +18,7 @@ apply from: 'gradle/repositories.gradle'
 //
 // DO NOT FORGET TO DOCUMENT CHANGES IN CHANGELOG.md (create if needed)
 //
-def otto_config_version = "0.1.3"  // <--- SET AND UPDATE VERSION HERE
+def otto_config_version = "0.1.4"  // <--- SET AND UPDATE VERSION HERE
 
 group = 'de.otto.config'
 version = otto_config_version

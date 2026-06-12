@@ -20,14 +20,3 @@ variable "change_notification_enabled" {
   type        = bool
   default     = false
 }
-
-variable "change_notification_consumer_role_arn" {
-  description = "ARN of the IAM role that the application uses at runtime.  When change_notification_enabled is true, this role receives sqs:ReceiveMessage, sqs:DeleteMessage and sqs:GetQueueAttributes permissions on the notification queue."
-  type        = string
-  default     = ""
-
-  validation {
-    condition     = !var.change_notification_enabled || var.change_notification_consumer_role_arn != ""
-    error_message = "change_notification_consumer_role_arn must be set when change_notification_enabled is true."
-  }
-}
