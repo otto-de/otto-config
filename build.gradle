@@ -91,26 +91,6 @@ test {
     useJUnitPlatform()
 }
 
-// VS Code uses bin/ directory (Eclipse-style) instead of build/ (Gradle-style)
-// This task syncs resources so they're available when debugging from VS Code
-tasks.register('syncResourcesToVSCode', Copy) {
-    description = 'Copies processed resources from build/ to bin/ for VS Code compatibility'
-    from layout.buildDirectory.dir('resources/main')
-    into layout.projectDirectory.dir('bin/main')
-    onlyIf { layout.projectDirectory.dir('bin').asFile.exists() }
-}
-
-tasks.register('syncTestResourcesToVSCode', Copy) {
-    description = 'Copies processed test resources from build/ to bin/ for VS Code compatibility'
-    from layout.buildDirectory.dir('resources/test')
-    into layout.projectDirectory.dir('bin/test')
-    onlyIf { layout.projectDirectory.dir('bin').asFile.exists() }
-}
-
-// Automatically sync resources after processing them
-processResources.finalizedBy syncResourcesToVSCode
-processTestResources.finalizedBy syncTestResourcesToVSCode
-
 publishing {
     publications {
         mavenJava(MavenPublication) {
