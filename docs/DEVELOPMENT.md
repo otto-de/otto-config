@@ -280,6 +280,12 @@ logging.level.de.otto.config=DEBUG
 **Issue**: Tests failing with SourceException
 - **Solution**: Check that local profile is active or test resources exist
 
+**Issue**: VS Code - Application properties not loading (resources not found)
+- **Root Cause**: VS Code's Java extension uses the `bin/` directory (Eclipse-style) for compiled classes and resources, while Gradle uses `build/`. When debugging from VS Code, the application can't find resources because they're only in `build/resources/` and not in `bin/`.
+- **Solution**: The project includes Gradle tasks (`syncResourcesToVSCode` and `syncTestResourcesToVSCode`) that automatically copy resources from `build/resources/` to `bin/` after processing. These run automatically when you build or run `./gradlew processResources`.
+- **Manual Trigger**: If resources are stale, run `./gradlew processResources processTestResources`
+- **Note**: This issue is specific to VS Code's Java extension and does not occur in IntelliJ IDEA or production environments
+
 ## Contributing
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for contribution guidelines.
