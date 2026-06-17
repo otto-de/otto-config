@@ -77,7 +77,7 @@ private boolean searchEnabled;
 
 // For auto-refreshing properties
 @PropertyValue("feature.search.enabled")
-private Property<Boolean> searchEnabled;
+private Property<Boolean> searchEnabledProperty;
 ```
 
 ### Helidon
@@ -96,7 +96,7 @@ private Boolean searchEnabled;
 // For auto-refreshing properties
 @Inject
 @PropertyValue("feature.search.enabled")
-private Property<Boolean> searchEnabled;
+private Property<Boolean> searchEnabledProperty;
 ```
 
 ### Plain Java
