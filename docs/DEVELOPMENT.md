@@ -27,6 +27,56 @@ cd otto-config
 ./gradlew javadoc
 ```
 
+## Running Locally for Testing
+
+When developing or testing Otto Config locally, you can use file-based configuration sources instead of connecting to AWS or Vault.
+
+### 1. Create Local Configuration Files
+
+Create `src/main/resources/properties.json` in your application or demo project:
+
+```json
+{
+  "properties": {
+    "database.url": "jdbc:h2:mem:testdb",
+    "feature.search.enabled": "true",
+    "cache.timeout": "3600"
+  },
+  "toggles": {
+    "new_feature": { "enabled": true },
+    "beta_ui": { "enabled": false }
+  }
+}
+```
+
+### 2. Set Profile for Local Development
+
+Configure your application to use the local profile:
+
+**Spring Boot:**
+```bash
+--spring.profiles.active=local
+```
+
+**Helidon:**
+```bash
+-Dmp.config.profile=local
+```
+
+**Plain Java:**
+```java
+System.setProperty("otto.config.profile", "local");
+```
+
+**Via Environment Variable:**
+```bash
+export OTTO_CONFIG_SOURCES_ENABLED=file
+```
+
+### 3. Run Your Application
+
+With the local profile set, Otto Config will automatically load configuration from your local `properties.json` file. This allows you to test configuration changes without connecting to external services.
+
 ## Running Demo Projects
 
 Otto Config includes three demo projects showcasing integration with different frameworks:

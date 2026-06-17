@@ -17,7 +17,7 @@ A Java library for dynamic, centralized configuration management using AWS AppCo
 ## Features
 
 - **Fast Setup** — Add the dependency and start using configuration immediately
-- **Auto Refresh** — Configuration updates every 5 minutes, no restarts required
+- **Auto Refresh** — Configuration updates every 5 minutes by default, no restarts required; optional event-driven refresh available for immediate updates (see [AWS Setup Guide](docs/AWS_SETUP.md#event-driven-refresh))
 - **Unified API** — Access properties and toggles from multiple sources through one interface
 - **Framework Integration** — Auto-registers with Spring Boot and Helidon; works with plain Java too
 - **Multiple Sources** — AWS AppConfig, Secrets Manager, Parameter Store, Hashicorp Vault, and local files
@@ -43,42 +43,22 @@ dependencies {
 </dependency>
 ```
 
-### 2. Create Local Configuration
+### 2. Configure Sources
 
-Create `src/main/resources/properties.json`:
+Configure which configuration sources to use via `application.properties` or environment variables. Otto Config supports AWS AppConfig, Secrets Manager, Parameter Store, Hashicorp Vault, and local files.
 
-```json
-{
-  "properties": {
-    "database.url": "jdbc:h2:mem:testdb",
-    "feature.search.enabled": "true",
-    "cache.timeout": "3600"
-  },
-  "toggles": {
-    "new_feature": { "enabled": true },
-    "beta_ui": { "enabled": false }
-  }
-}
+```properties
+# Example: Enable AWS sources for production
+otto.config.sources.enabled=aws.appconfig.properties,aws.appconfig.toggles,aws.secrets,aws.ssm
 ```
 
-### 3. Set Profile for Local Development
+See the [Configuration Sources](#configuration-sources) section below for detailed configuration options and the **[AWS Setup Guide](docs/AWS_SETUP.md)** for infrastructure setup including IAM permissions and Terraform examples.
 
-**Spring Boot:**
-```bash
---spring.profiles.active=local
-```
+### 3. Use Configuration in Your Code
 
-**Helidon:**
-```bash
--Dmp.config.profile=local
-```
+That's it! Otto Config will automatically discover and integrate with your framework. Access your configuration through standard framework mechanisms or the ConfigurationProvider API.
 
-**Plain Java:**
-```java
-System.setProperty("otto.config.profile", "local");
-```
-
-That's it! Otto Config will automatically discover and load your configuration. No additional setup needed.
+**For local development and testing**, see the **[Development Guide](docs/DEVELOPMENT.md)** for instructions on running with local configuration files.
 
 ## Framework Integration
 
@@ -124,9 +104,9 @@ private Property<Boolean> searchEnabled;
 Use the ConfigurationProvider directly:
 
 ```java
-import core.de.otto.config.Context;
-import provider.de.otto.config.ConfigurationProvider;
-import source.de.otto.config.CoreSourceFactory;
+import de.otto.config.core.Context;
+import de.otto.config.provider.ConfigurationProvider;
+import de.otto.config.source.CoreSourceFactory;
 
 public class MyApplication {
     private final ConfigurationProvider configurationProvider;
