@@ -19,7 +19,7 @@ A Java library for dynamic, centralized configuration management using AWS AppCo
 - **Fast Setup** — Add the dependency and start using configuration immediately
 - **Auto Refresh** — Configuration updates every 5 minutes by default, no restarts required; optional event-driven refresh available for immediate updates (see [AWS Setup Guide](docs/AWS_SETUP.md#event-driven-refresh))
 - **Unified API** — Access properties and toggles from multiple sources through one interface
-- **Framework Integration** — Auto-registers with Spring Boot and Helidon; works with plain Java too
+- **Framework Integration** — Auto-registers with Spring Boot and Helidon; works with plain Java and Clojure too
 - **Multiple Sources** — AWS AppConfig, Secrets Manager, Parameter Store, Hashicorp Vault, and local files
 - **Type Safe** — Built-in support for String, Boolean, and Integer types
 
@@ -128,6 +128,45 @@ public class MyApplication {
         // Use configuration...
     }
 }
+```
+
+### Clojure
+
+Use Java interop to access Otto Config:
+
+**Add dependency (deps.edn):**
+```clojure
+{:deps {de.otto.config/otto-config {:mvn/version "0.1.2"}}}
+```
+
+**Or with Leiningen (project.clj):**
+```clojure
+:dependencies [[de.otto.config/otto-config "0.1.2"]]
+```
+
+**Usage:**
+```clojure
+(ns myapp.config
+  (:import [de.otto.config.core Context]
+           [de.otto.config.provider ConfigurationProvider]
+           [de.otto.config.source CoreSourceFactory]))
+
+(defn create-config-provider []
+  (let [context (Context/from "my-application")]
+    (-> (ConfigurationProvider/builder)
+        (.context context)
+        (.source (CoreSourceFactory/createPropertiesSource context))
+        (.source (CoreSourceFactory/createTogglesSource context))
+        (.build))))
+
+(def config-provider (create-config-provider))
+
+;; Get configuration values
+(defn get-database-url []
+  (.getValue config-provider "database.url" "jdbc:h2:mem:testdb"))
+
+(defn search-enabled? []
+  (.getValueAsBoolean config-provider "feature.search.enabled" false))
 ```
 
 ## Configuration Sources
