@@ -43,27 +43,27 @@ flowchart TD
 
     %% Framework Integration
     subgraph B[🔗 Framework Integration]
-        B1[**SpringPropertySource**<br/><small>Integrates Otto Config with Spring's config system</small>] --> 
-        B2[**SpringSchedulerConfiguration**<br/><small>Triggers periodic config refresh in Spring</small>]  --> 
-        B3[**HelidonPropertySource**<br/><small>Integrates Otto Config with Helidon's config system</small>] --> 
-        B4[**HelidonSchedulerConfiguration**<br/><small>Triggers periodic config refresh in Helidon</small>]
+        B1[<b>SpringPropertySource</b><br/><small>Integrates Otto Config with Spring's config system</small>] --> 
+        B2[<b>SpringSchedulerConfiguration</b><br/><small>Triggers periodic config refresh in Spring</small>]  --> 
+        B3[<b>HelidonPropertySource</b><br/><small>Integrates Otto Config with Helidon's config system</small>] --> 
+        B4[<b>HelidonSchedulerConfiguration</b><br/><small>Triggers periodic config refresh in Helidon</small>]
     end
 
     %% Core Components
     subgraph C[⚙️ Core Components & Services]
         direction TB
-        C1[**ConfigurationProvider**<br/><small>Configuration provider for properties with caching</small>]
-        C3[**Context**<br/><small>Framework-agnostic configuration</small>]
-        C4[**ConfigurationCache**<br/><small>Cache for all combined and normalized values</small>]
-        C5[**SourceAggregator**<br/><small>Combines and normalizes source data</small>]
-        C6[**ClientRegistry**<br/><small>Registry for re-usable clients</small>]
-        C7[**SourceRegistry**<br/><small>Registry for sources</small>]
-        C8[**ProviderRegistry**<br/><small>Registry for providers</small>]
+        C1[<b>ConfigurationProvider</b><br/><small>Configuration provider for properties with caching</small>]
+        C3[<b>Context</b><br/><small>Framework-agnostic configuration</small>]
+        C4[<b>ConfigurationCache</b><br/><small>Cache for all combined and normalized values</small>]
+        C5[<b>SourceAggregator</b><br/><small>Combines and normalizes source data</small>]
+        C6[<b>ClientRegistry</b><br/><small>Registry for re-usable clients</small>]
+        C7[<b>SourceRegistry</b><br/><small>Registry for sources</small>]
+        C8[<b>ProviderRegistry</b><br/><small>Registry for providers</small>]
     end
 
     %% Sources
     subgraph D[📡 Sources]
-        D1[**AppConfigSource**<br/><small>AWS AppConfig</small>] --> D2[**SecretsManagerSource**<br/><small>AWS Secrets Manager</small>]  --> D3[**SsmSource**<br/><small>AWS Parameter Store</small>] --> D4[**VaultSource**<br/><small>Hashicorp Vault</small>] --> D5[**FileSource**<br/><small>Local JSON properties.json file</small>]
+        D1[<b>AppConfigSource</b><br/><small>AWS AppConfig</small>] --> D2[<b>SecretsManagerSource</b><br/><small>AWS Secrets Manager</small>]  --> D3[<b>SsmSource</b><br/><small>AWS Parameter Store</small>] --> D4[<b>VaultSource</b><br/><small>Hashicorp Vault</small>] --> D5[<b>FileSource</b><br/><small>Local JSON properties.json file</small>]
     end
 
     %% Internal connections (simplified)
@@ -106,16 +106,16 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    A[👤 **User Request:**<br/>configurationProvider.getValue] --> B[🔧 **ConfigurationProvider**<br/>delegates to ConfigurationCache]
-    B --> C[📊 **ConfigurationCache**<br/>looks up cached values]
-    C --> I[✅ **Return cached value**]
+    A[👤 <b>User Request:</b><br/>configurationProvider.getValue] --> B[🔧 <b>ConfigurationProvider</b><br/>delegates to ConfigurationCache]
+    B --> C[📊 <b>ConfigurationCache</b><br/>looks up cached values]
+    C --> I[✅ <b>Return cached value</b>]
     
-    D[🚀 **Service Startup**] --> E[📋 **ConfigurationProvider**<br/>loads from sources]
-    E --> F[🏭 **SourceRegistry**<br/>Load from AWS/Local]
-    F --> G[⚙️ **SourceAggregator**<br/>combine + normalize]
-    G --> H[💾 **Cache values in**<br/>ConfigurationCache]
+    D[🚀 <b>Service Startup</b>] --> E[📋 <b>ConfigurationProvider</b><br/>loads from sources]
+    E --> F[🏭 <b>SourceRegistry</b><br/>Load from AWS/Local]
+    F --> G[⚙️ <b>SourceAggregator</b><br/>combine + normalize]
+    G --> H[💾 <b>Cache values in</b><br/>ConfigurationCache]
     
-    J[⏰ **Every 5 minutes**<br/>Auto refresh] -.-> K[🔄 **ConfigurationProvider**<br/>refresh method]
+    J[⏰ <b>Every 5 minutes</b><br/>Auto refresh] -.-> K[🔄 <b>ConfigurationProvider</b><br/>refresh method]
     K -.-> F
     F -.-> G
     
