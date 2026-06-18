@@ -200,23 +200,30 @@ otto.config.sources.enabled=aws.appconfig.properties,hashicorp.vault
 
 ### AWS Configuration Quick Reference
 
-**AWS AppConfig:**
-```properties
-# Automatically configured via Terraform module
-# See docs/AWS_SETUP.md for details
-```
+**AWS AppConfig**
+
+Automatically configured via Terraform module. see see **[docs/AWS_SETUP.md](docs/AWS_SETUP.md)** for more details.
 
 **AWS Secrets Manager:**
+
+Specify one or more secret ARNs in your application properties:
+
 ```properties
 otto.config.aws.secrets.arn=arn:aws:secretsmanager:region:account:secret:your-secret-name
 ```
 
 **AWS Parameter Store:**
+
+Specify one or more path prefixes:
+
 ```properties
 otto.config.aws.ssm.path.prefix=/your/app/config
 ```
 
 **Hashicorp Vault:**
+
+Configure the Vault URL, application path, and authentication credentials:
+
 ```properties
 otto.config.hashicorp.vault.url=https://vault.example.com:8200
 otto.config.hashicorp.vault.path=/secret/your-app
