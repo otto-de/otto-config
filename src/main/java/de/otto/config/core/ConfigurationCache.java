@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import de.otto.config.core.property.PropertyNameNormalizer;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -18,12 +19,27 @@ public final class ConfigurationCache<T> implements Configuration<T> {
 
     @Override
     public T getValue(String key) {
-        return this.properties.getOrDefault(key, null);
+        // Try exact match first
+        T value = this.properties.get(key);
+        if (value != null) {
+            return value;
+        }
+        
+        // Try variants for relaxed binding (supports all frameworks)
+        for (String variant : PropertyNameNormalizer.generateVariants(key)) {
+            value = this.properties.get(variant);
+            if (value != null) {
+                return value;
+            }
+        }
+        
+        return null;
     }
 
     @Override
     public T getValue(String key, T defaultValue) {
-        return this.properties.getOrDefault(key, defaultValue);
+        T value = getValue(key);
+        return value != null ? value : defaultValue;
     }
 
     @Override
