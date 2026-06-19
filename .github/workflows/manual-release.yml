@@ -60,10 +60,12 @@ jobs:
       
       - name: Publish to Maven Central
         env:
-          MAVEN_CENTRAL_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
-          MAVEN_CENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
-          GPG_SIGNING_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
-          GPG_SIGNING_PASSWORD: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
+          GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
+          MAVENCENTRAL_USERNAME: ${{ secrets.MAVENCENTRAL_USERNAME }}
+          MAVENCENTRAL_PASSWORD: ${{ secrets.MAVENCENTRAL_PASSWORD }}
         run: ./gradlew publishMavenJavaPublicationToMavenCentralRepository
       
       - name: Create git tag
