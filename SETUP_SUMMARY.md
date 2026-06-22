@@ -34,12 +34,8 @@ This project has been configured to publish JAR artifacts to both **GitHub Packa
    - Actions: Build and test (no publishing)
 
 2. **[.github/workflows/release.yml](.github/workflows/release.yml)**
-   - Triggers: Git tag push matching `v*.*.*`
-   - Actions: Build, test, publish, create GitHub release
-
-3. **[.github/workflows/manual-release.yml](.github/workflows/manual-release.yml)**
-   - Triggers: Manual workflow dispatch
-   - Actions: Build, test, publish with optional tag creation
+   - Triggers: Manual workflow dispatch only
+   - Actions: Build, test, create git tag, publish, create GitHub release
 
 ## 📦 Published Artifacts
 
@@ -85,7 +81,7 @@ Add repository secrets (Settings → Secrets and variables → Actions):
 **⚠️ Important: This project uses manual version management!**
 
 ```bash
-# 1. Update version in build.gradle (MUST be done before tagging!)
+# 1. Update version in build.gradle (remove -SNAPSHOT)
 # Change: def otto_config_version = "0.1.0-SNAPSHOT"
 # To:     def otto_config_version = "0.1.0"
 
@@ -94,9 +90,9 @@ git add build.gradle
 git commit -m "Release version 0.1.0"
 git push
 
-# 3. Create and push git tag (with "v" prefix)
-git tag -a v0.1.0 -m "Release version 0.1.0"
-git push origin v0.1.0
+# 3. Trigger the Release workflow manually:
+#    Go to: GitHub → Actions → Release → Run workflow
+#    Click "Run workflow"
 
 # 4. After release, bump to next development version
 # Edit build.gradle: def otto_config_version = "0.2.0-SNAPSHOT"
@@ -105,10 +101,11 @@ git commit -m "Prepare for next development iteration"
 git push
 ```
 
-**Note:** Git tags use "v" prefix (`v0.1.0`), but published artifacts do NOT (`otto-config-0.1.0.jar`).
+**Note:** The workflow creates git tags automatically with "v" prefix (`v0.1.0`), but published artifacts do NOT have the "v" (`otto-config-0.1.0.jar`).
 
 The GitHub Actions workflow will automatically:
 - ✅ Run all tests
+- ✅ Create git tag (e.g., v0.1.0)
 - ✅ Publish to GitHub Packages
 - ✅ Publish to Maven Central
 - ✅ Create GitHub Release with notes

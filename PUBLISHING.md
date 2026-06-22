@@ -179,77 +179,65 @@ git push
 
 **Note:** The `release.sh` script publishes artifacts but does NOT create git tags or GitHub releases. You must do those steps manually.
 
-### Option 2: Automated Release via GitHub Actions
+### Option 2: Automated Release via GitHub Actions (Recommended)
 
-#### Tag-based Release (Recommended)
-
-**Critical: Update version in build.gradle BEFORE tagging!**
+**This is now the primary release method. The workflow creates the git tag automatically.**
 
 ```bash
 # 1. Update version in build.gradle (remove -SNAPSHOT)
 #    Edit: def otto_config_version = "0.1.0"
-#    The version MUST match the tag (without the "v" prefix)
-
-# 2. Commit the version change
 git add build.gradle
 git commit -m "Release version 0.1.0"
-
-# 3. Push the commit first (before creating tag)
 git push
 
-# 4. Create and push the git tag (with "v" prefix)
-git tag -a v0.1.0 -m "Release version 0.1.0"
-git push origin v0.1.0
+# 2. Go to GitHub Actions and manually trigger the Release workflow:
+#    - Navigate to: Actions → Release → Run workflow
+#    - Click "Run workflow"
 
-# 5. After release completes, bump to next development version
+# 3. After release completes, bump to next development version
 #    Edit build.gradle: def otto_config_version = "0.2.0-SNAPSHOT"
 git add build.gradle
 git commit -m "Prepare for next development iteration"
 git push
 ```
 
-**What happens next:**
+**What happens when you trigger the workflow:**
 
-The `.github/workflows/release.yml` workflow will automatically:
+The `.github/workflows/release.yml` workflow will:
 1. Build and test the project
-2. Publish artifacts with version `0.1.0` (no "v") to:
+2. **Create and push a git tag** (e.g., `v0.1.0`) based on the version in `build.gradle`
+3. Publish artifacts to:
    - GitHub Packages: `de.otto.config:otto-config:0.1.0`
    - Maven Central Staging: `de.otto.config:otto-config:0.1.0`
-3. Create a GitHub Release titled "Release 0.1.0" (extracts version from tag by removing "v")
+4. Create a GitHub Release with auto-generated release notes
 
-#### Manual Workflow
-
-**For ad-hoc releases or testing without creating a git tag first:**
-
-1. **First:** Update version in `build.gradle` if needed, commit and push
-2. Go to the Actions tab in GitHub
-3. Select "Manual Release" workflow
-4. Click "Run workflow"
-5. Options:
-   - **Version**: Leave empty to use version from `build.gradle`, or specify a version for the GitHub release title
-   - **Create git tag**: Check this to automatically create a git tag (recommended for real releases)
-6. Click "Run workflow" button
-
-**Important:** The manual workflow publishes whatever version is currently in `build.gradle`. If `build.gradle` says `0.1.0-SNAPSHOT`, that's what gets published, regardless of what you type in the version field.
+**Important Notes:**
+- The workflow reads the version from `build.gradle` - this is the single source of truth
+- The git tag is created automatically with a "v" prefix (e.g., `v0.1.0`)
+- Published artifacts use the version without the "v" prefix (e.g., `otto-config-0.1.0.jar`)
+- The workflow will fail if the git tag already exists (to retry, delete the tag first)
 
 ## Common Mistakes to Avoid
 
-### ❌ Mistake 1: Tagging before updating build.gradle
+### ❌ Mistake 1: Not updating build.gradle before triggering release
 ```bash
-# WRONG - This will publish 0.1.0-SNAPSHOT instead of 0.1.0
-git tag -a v0.1.0 -m "Release 0.1.0"
-git push origin v0.1.0  # build.gradle still has "0.1.0-SNAPSHOT"
+# WRONG - Running the workflow while build.gradle still has "0.1.0-SNAPSHOT"
+# This will create a tag v0.1.0-SNAPSHOT and publish snapshot artifacts
 ```
 
-**✅ Correct:** Always update `build.gradle`, commit, and push BEFORE creating the tag.
+**✅ Correct:** Always update `build.gradle` to remove `-SNAPSHOT`, commit, and push BEFORE triggering the release workflow.
 
-### ❌ Mistake 2: Version mismatch between build.gradle and git tag
+### ❌ Mistake 2: Trying to re-release without deleting the existing tag
 ```bash
-# WRONG - build.gradle says "0.1.0" but tag says "v0.2.0"
-# This publishes artifacts as 0.1.0 but creates a GitHub release for 0.2.0
+# WRONG - Running the workflow again when v0.1.0 tag already exists
+# The workflow will fail because the tag cannot be overwritten
 ```
 
-**✅ Correct:** Ensure `build.gradle` version matches the git tag (without the "v").
+**✅ Correct:** If you need to retry a release, first delete the tag:
+```bash
+git push --delete origin v0.1.0
+# Then trigger the workflow again
+```
 
 ### ❌ Mistake 3: Using "v" in build.gradle
 ```gradle
@@ -271,6 +259,42 @@ def otto_config_version = "0.1.0-SNAPSHOT"  // Still has -SNAPSHOT
 After releasing `0.1.0`, if you don't update to `0.2.0-SNAPSHOT`, your next commits will still build as `0.1.0`, causing confusion.
 
 **✅ Correct:** Immediately after a release, update `build.gradle` to the next development version with `-SNAPSHOT`.
+
+## Handling Failed Releases
+
+If a release workflow fails or you need to retry:
+
+### If the Git Tag Was Not Created
+Simply fix the issue and re-trigger the workflow.
+
+### If the Git Tag Was Created But Publishing Failed
+
+1. **Delete the git tag:**
+   ```bash
+   # Delete locally (if you have it)
+   git tag -d v0.1.0
+   
+   # Delete from GitHub
+   git push --delete origin v0.1.0
+   ```
+
+2. **Delete the GitHub Release** (if it was created):
+   - Go to Releases page on GitHub
+   - Find the release and delete it
+
+3. **Fix the issue** (e.g., check secrets, fix build errors)
+
+4. **Re-trigger the workflow**
+
+### If Publishing Succeeded But You Need to Release Again
+
+**Important:** You cannot overwrite versions in Maven Central. Once published, they're immutable.
+
+Your options:
+1. **For critical fixes:** Bump to a patch version (e.g., `0.1.1`) and release that
+2. **If nothing was published to Maven Central yet:** You can delete the GitHub Packages artifact and retry with the same version
+
+**Note:** SNAPSHOT versions can be overwritten, but release versions (without `-SNAPSHOT`) cannot.
 
 ## Testing the Setup
 
@@ -444,12 +468,9 @@ dependencies {
 - **Actions:** Build, test, and validate (no publishing)
 
 ### [.github/workflows/release.yml](.github/workflows/release.yml)
-- **Triggered on:** Git tag push matching `v*.*.*`
-- **Actions:** Build, test, publish to both GitHub Packages and Maven Central, create GitHub Release
-
-### [.github/workflows/manual-release.yml](.github/workflows/manual-release.yml)
-- **Triggered on:** Manual workflow dispatch
-- **Actions:** Build, test, publish, optionally create tag and GitHub Release
+- **Triggered on:** Manual workflow dispatch only
+- **Actions:** Build, test, create git tag, publish to both GitHub Packages and Maven Central, create GitHub Release
+- **Version source:** Always uses version from `build.gradle` (single source of truth)
 
 ## Maven Central Release Promotion
 
