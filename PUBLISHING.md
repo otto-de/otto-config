@@ -13,113 +13,13 @@ The publishing setup uses:
 
 ## Prerequisites
 
-### 1. GPG Key Setup
+All publishing credentials (GPG keys, Maven Central credentials, GitHub tokens) are configured as organizational secrets in the otto-de GitHub organization. You don't need to set up any keys or tokens locally.
 
-You need a GPG key for signing artifacts.
+**What you need:**
+- Write access to the otto-de/otto-config repository
+- Ability to trigger GitHub Actions workflows
 
-#### Generate a new GPG key:
-```bash
-gpg --full-generate-key
-```
-
-Follow the prompts:
-- Select RSA and RSA
-- Key size: 4096 bits
-- Expiration: 0 (no expiration) or your preference
-- Use your real name and email associated with your GitHub account
-
-#### Export your GPG keys:
-```bash
-# Find your key ID
-gpg --list-secret-keys --keyid-format=long
-
-# Export private key in ASCII-armored format
-gpg --armor --export-secret-keys YOUR_KEY_ID
-
-# The output should start with -----BEGIN PGP PRIVATE KEY BLOCK-----
-# Copy the entire output including the header and footer
-```
-
-#### Get your passphrase ready
-You'll need the passphrase you set when creating the GPG key.
-
-### 2. GitHub Token
-
-Create a GitHub personal access token:
-1. Go to https://github.com/settings/tokens
-2. Click "Generate new token (classic)"
-3. Select scopes:
-   - `repo` (full control of private repositories)
-   - `write:packages` (upload packages to GitHub Package Registry)
-4. Generate and save the token securely
-
-### 3. Maven Central Credentials
-
-Otto should already have an organizational Maven Central account with the `de.otto.*` namespace verified.
-
-**For Otto developers:**
-- Contact your team lead or DevOps to get access to the existing Maven Central credentials
-- These are typically shared organizational credentials stored in a secure vault
-- The `de.otto.config` namespace is already covered under the `de.otto.*` namespace
-
-**If you need to verify or manage the account:**
-1. Log in to https://s01.oss.sonatype.org/ with Otto's organizational credentials
-2. To generate a user token for CI/CD:
-   - Click your username → Profile
-   - Select "User Token" from dropdown
-   - Click "Access User Token"
-3. Save the username and password token securely
-
-**Note:** Do not create a personal Maven Central account for Otto packages. Use the organizational credentials.
-
-## Configuration
-
-**Important:** This project publishes under Otto's organizational accounts. Contact your team lead or DevOps team to get:
-- Otto's Maven Central credentials (username/password token)
-- Otto's GPG signing key and passphrase
-- Access to the otto-de GitHub organization secrets
-
-### Environment Variables
-
-The build.gradle file expects these environment variables for signing and publishing:
-
-```bash
-# Required for signing
-export GPG_SIGNING_KEY='-----BEGIN PGP PRIVATE KEY BLOCK-----
-...your key...
------END PGP PRIVATE KEY BLOCK-----'
-export GPG_SIGNING_PASSWORD='your_gpg_passphrase'
-
-# Required for GitHub Packages
-export GITHUB_TOKEN='your_github_token'
-
-# Required for Maven Central (optional for SNAPSHOT)
-export MAVEN_USERNAME='your_maven_central_username'
-export MAVEN_PASSWORD='your_maven_central_password'
-```
-
-**Tip:** You can add these to your shell profile (~/.bashrc, ~/.zshrc) for persistence, but be careful with sensitive data.
-
-### GitHub Repository Secrets
-
-Configure secrets in your GitHub repository for automated releases:
-
-1. **Check for existing organization-level secrets first:**
-   - Otto may already have some secrets configured at the organization level
-   - Contact your DevOps team to check what's already available
-   
-2. **If not already configured, add repository secrets:**
-   - Go to repository Settings → Secrets and variables → Actions
-   - Add the following repository secrets:
-     - `GPG_SIGNING_KEY` - Otto's GPG private key for signing (ASCII-armored)
-     - `GPG_SIGNING_PASSWORD` - GPG key passphrase
-     - `MAVEN_USERNAME` - Otto's Maven Central username token
-     - `MAVEN_PASSWORD` - Otto's Maven Central password token
-
-**Note:** 
-- `GITHUB_TOKEN` is automatically provided by GitHub Actions
-- Contact your team lead or DevOps for the actual credential values
-- These should be Otto's organizational credentials, not personal ones
+**Note:** The `GITHUB_TOKEN` is automatically provided by GitHub Actions. All other credentials (GPG signing keys, Maven Central credentials) are configured at the organization level and are automatically available to the release workflow.
 
 ## Version Management
 
@@ -142,44 +42,7 @@ def otto_config_version = "0.1.0"           // For release
 
 ## Release Process
 
-### Option 1: Local Release (using release.sh)
-
-**For testing or when you can't use GitHub Actions:**
-
-```bash
-# 1. Update version in build.gradle
-#    For release: def otto_config_version = "0.1.0"
-#    For snapshot: def otto_config_version = "0.1.0-SNAPSHOT"
-
-# 2. Commit your changes (for releases)
-git add build.gradle
-git commit -m "Release version 0.1.0"
-
-# 3. Set up environment variables (if not already in your shell profile)
-export GPG_SIGNING_KEY='...'
-export GPG_SIGNING_PASSWORD='...'
-export GITHUB_TOKEN='...'
-export MAVEN_USERNAME='...'  # Required for Maven Central
-export MAVEN_PASSWORD='...'  # Required for Maven Central
-
-# 4. Run the release script (publishes artifacts)
-./release.sh
-
-# 5. For releases: Create and push git tag
-git tag -a v0.1.0 -m "Release version 0.1.0"
-git push origin v0.1.0
-git push
-
-# 6. Update to next development version
-#    Edit build.gradle: def otto_config_version = "0.2.0-SNAPSHOT"
-git add build.gradle
-git commit -m "Prepare for next development iteration"
-git push
-```
-
-**Note:** The `release.sh` script publishes artifacts but does NOT create git tags or GitHub releases. You must do those steps manually.
-
-### Option 2: Automated Release via GitHub Actions (Recommended)
+### Automated Release via GitHub Actions (Recommended)
 
 **This is now the primary release method. The workflow creates the git tag automatically.**
 
