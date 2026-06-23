@@ -137,8 +137,8 @@ publishing {
             name = 'MavenCentral'
             url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
             credentials {
-                username = System.getenv("MAVEN_CENTRAL_USERNAME") ?: findProperty("mavenCentral.username")
-                password = System.getenv("MAVEN_CENTRAL_PASSWORD") ?: findProperty("mavenCentral.password")
+                username = System.getenv("MAVENCENTRAL_USERNAME") ?: findProperty("mavenCentral.username")
+                password = System.getenv("MAVENCENTRAL_PASSWORD") ?: findProperty("mavenCentral.password")
             }
         }
         maven {
