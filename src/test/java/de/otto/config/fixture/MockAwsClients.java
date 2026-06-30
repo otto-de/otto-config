@@ -20,8 +20,13 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClientBuilder;
 import software.amazon.awssdk.services.secretsmanager.model.BatchGetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.BatchGetSecretValueResponse;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.SsmClientBuilder;
+import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
 import software.amazon.awssdk.services.ssm.paginators.GetParametersByPathIterable;
@@ -37,19 +42,26 @@ public class MockAwsClients {
         SsmClient mockSsmClient = mockSsmClient();
         SsmClientBuilder mockSsmClientBuilder = Mockito.mock(SsmClientBuilder.class);
 
+        S3Client mockS3Client = mockS3Client();
+        S3ClientBuilder mockS3ClientBuilder = Mockito.mock(S3ClientBuilder.class);
+
         try (
             MockedStatic<AppConfigDataClient> appConfigStatic = Mockito.mockStatic(AppConfigDataClient.class);
             MockedStatic<SecretsManagerClient> secretsManagerStatic = Mockito.mockStatic(SecretsManagerClient.class);
-            MockedStatic<SsmClient> ssmStatic = Mockito.mockStatic(SsmClient.class)
+            MockedStatic<SsmClient> ssmStatic = Mockito.mockStatic(SsmClient.class);
+            MockedStatic<S3Client> s3Static = Mockito.mockStatic(S3Client.class)
         ) {
             appConfigStatic.when(AppConfigDataClient::builder).thenReturn(mockAppConfigDataClientBuilder);
             Mockito.when(mockAppConfigDataClientBuilder.build()).thenReturn(mockAppConfigDataClient);
-      
+
             secretsManagerStatic.when(SecretsManagerClient::builder).thenReturn(mockSecretsManagerClientBuilder);
             Mockito.when(mockSecretsManagerClientBuilder.build()).thenReturn(mockSecretsManagerClient);
 
             ssmStatic.when(SsmClient::builder).thenReturn(mockSsmClientBuilder);
             Mockito.when(mockSsmClientBuilder.build()).thenReturn(mockSsmClient);
+
+            s3Static.when(S3Client::builder).thenReturn(mockS3ClientBuilder);
+            Mockito.when(mockS3ClientBuilder.build()).thenReturn(mockS3Client);
 
             testCode.run();
         }
@@ -86,6 +98,16 @@ public class MockAwsClients {
 
         when(client.getParametersByPathPaginator(any(GetParametersByPathRequest.class))).thenReturn(paginator);
         when(client.getParametersByPath(any(GetParametersByPathRequest.class))).thenReturn(response);
+        return client;
+    }
+
+    public static S3Client mockS3Client() {
+        S3Client client = mock(S3Client.class);
+        ListObjectsV2Request request = ListObjectsV2Request.builder().bucket("").prefix("").build();
+        ListObjectsV2Response response = ListObjectsV2Response.builder().build();
+        when(client.listObjectsV2Paginator(any(ListObjectsV2Request.class)))
+                .thenReturn(new ListObjectsV2Iterable(client, request));
+        when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(response);
         return client;
     }
 }
