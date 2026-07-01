@@ -1,0 +1,125 @@
+# Local infrastructure for the demo services.
+#
+# Starts:
+#   - moto  : an AWS mock exposing SecretsManager, SSM, SQS, EventBridge
+#             and STS on http://localhost:5000 (moto has no AppConfigData
+#             implementation — see appconfigdata-stub below).
+#   - vault : Hashicorp Vault dev-mode instance on http://localhost:8200
+#   - appconfigdata-stub : tiny JDK-only Java HTTP server that mimics the
+#             AWS AppConfigData data plane and serves the JSON files in
+#             ../terraform/. Runs on http://localhost:5001 and is
+#             addressed via AWS_ENDPOINT_URL_APPCONFIGDATA so the SDK
+#             routes only AppConfigData calls to it and everything else
+#             still goes to moto.
+#   - moto-init  : seeds moto with the Secrets Manager secret, the SSM
+#                  parameters and the SQS change-notification queue.
+#   - vault-init : seeds Vault with the KV secret, AppRole policy/role and
+#                  writes role_id / secret_id into ./.env so the demo apps
+#                  can pick them up
+#
+# Usage:
+#   cd demo/local
+#   docker compose up -d
+#   # wait until the *-init containers finished (docker compose ps)
+#   source ./.env
+#   cd ../..  # back to repo root, where the gradle wrapper lives
+#   ./gradlew :demo:spring:bootRun  --args='--spring.profiles.active=moto'
+#   ./gradlew :demo:helidon:run     -Pmp.config.profile=moto
+#   ./gradlew :demo:java:run
+#
+# Tear down:
+#   docker compose down -v
+
+services:
+  moto:
+    image: motoserver/moto:latest
+    container_name: otto-config-moto
+    ports:
+      - "5000:5000"
+    environment:
+      MOTO_SERVICE: "" # serve all services
+      MOTO_LOG_LEVEL: WARNING
+    healthcheck:
+      # Poll frequently while starting up, then once a minute in steady state
+      # so healthcheck traffic doesn't drown out real requests in the logs.
+      test: ["CMD", "python", "-c", "import urllib.request,sys;sys.exit(0) if urllib.request.urlopen('http://localhost:5000/moto-api/').status==200 else sys.exit(1)"]
+      interval: 60s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+      start_interval: 1s
+
+  vault:
+    image: hashicorp/vault:latest
+    container_name: otto-config-vault
+    cap_add:
+      - IPC_LOCK
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: myroot
+      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+      VAULT_ADDR: http://127.0.0.1:8200
+    ports:
+      - "8200:8200"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8200/v1/sys/health"]
+      interval: 60s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+      start_interval: 1s
+
+  appconfigdata-stub:
+    image: eclipse-temurin:21-jdk
+    container_name: otto-config-appconfigdata-stub
+    working_dir: /app
+    command: ["java", "AppConfigDataStub.java"]
+    environment:
+      APPCONFIGDATA_STUB_DATA_DIR: /data
+      APPCONFIGDATA_STUB_PORT: "5001"
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./appconfigdata-stub/AppConfigDataStub.java:/app/AppConfigDataStub.java:ro
+      # Mount the parent directory (not the individual files) so host-side
+      # edits that replace the inode — like `sed -i` on macOS — are picked
+      # up. Individual file bind mounts on Docker Desktop for Mac cache
+      # the original inode and keep serving the old content.
+      - ../terraform:/data:ro
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/5001 && printf 'GET /configuration HTTP/1.0\\r\\n\\r\\n' >&3 && head -n1 <&3"]
+      interval: 60s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+      start_interval: 1s
+
+  moto-init:
+    image: amazon/aws-cli:latest
+    container_name: otto-config-moto-init
+    depends_on:
+      moto:
+        condition: service_healthy
+    entrypoint: ["/bin/bash", "/init/init-moto.sh"]
+    environment:
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: eu-central-1
+      AWS_ENDPOINT_URL: http://moto:5000
+    volumes:
+      - ./init-moto.sh:/init/init-moto.sh:ro
+    restart: "no"
+
+  vault-init:
+    image: hashicorp/vault:latest
+    container_name: otto-config-vault-init
+    depends_on:
+      vault:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "/init/init-vault.sh"]
+    environment:
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: myroot
+    volumes:
+      - ./init-vault.sh:/init/init-vault.sh:ro
+      - ./:/out
+    restart: "no"

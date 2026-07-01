@@ -248,16 +248,25 @@ Complete working examples are available in the `demo/` directory:
 - **[demo/spring](demo/spring)** — Spring Boot application
 - **[demo/helidon](demo/helidon)** — Helidon application
 
-Run examples locally:
+Run examples locally (from the repo root — the Gradle wrapper only exists there):
 ```bash
 # Plain Java
-cd demo/java && ./gradlew run
+./gradlew :demo:java:run
 
 # Spring Boot
-cd demo/spring && ./gradlew bootRun --args='--spring.profiles.active=local'
+./gradlew :demo:spring:bootRun --args='--spring.profiles.active=local'
 
 # Helidon
-cd demo/helidon && ./gradlew run -Pmp.config.profile=local
+./gradlew :demo:helidon:run -Pmp.config.profile=local
+```
+
+To exercise the AWS/Vault code paths without hitting real AWS or the
+corporate Vault, use the local docker-compose stack (moto + Vault +
+AppConfigData stub) documented in **[demo/local/README.md](demo/local/README.md)**:
+
+```bash
+cd demo/local && docker compose up -d && source ./.env && cd ../..
+./gradlew :demo:spring:bootRun --args='--spring.profiles.active=moto'
 ```
 
 ## Contributing
