@@ -181,6 +181,7 @@ Otto Config supports multiple configuration sources that can be used together or
 | **AWS Secrets Manager** | ✅ | ❌ | Encrypted secrets (passwords, API keys) |
 | **AWS Parameter Store** | ✅ | ❌ | Hierarchical application settings |
 | **Hashicorp Vault** | ✅ | ❌ | Enterprise secret management |
+| **AWS S3 (Toggles)** | ❌ | ✅ | Feature toggles as S3 objects (no service code) |
 | **Local Files** | ✅ | ✅ | Development & testing |
 
 ### Enable Sources
@@ -229,6 +230,16 @@ otto.config.hashicorp.vault.url=https://vault.example.com:8200
 otto.config.hashicorp.vault.path=/secret/your-app
 otto.config.hashicorp.vault.auth.approle.role.id=${VAULT_ROLE_ID}
 otto.config.hashicorp.vault.auth.approle.secret.id=${VAULT_SECRET_ID}
+```
+
+**AWS S3 (Feature Toggles):**
+
+Specify the bucket and folder that hold the toggle objects:
+
+```properties
+otto.config.sources.enabled=aws.s3.toggles
+otto.config.aws.s3.toggles.bucket.name=my-service-bucket
+otto.config.aws.s3.toggles.folder.name=feature-toggles/
 ```
 
 For detailed AWS setup instructions, IAM permissions, and Terraform examples, see **[docs/AWS_SETUP.md](docs/AWS_SETUP.md)**.

@@ -18,12 +18,14 @@ import de.otto.config.core.source.SourceFactory;
 import de.otto.config.domain.Properties;
 import de.otto.config.domain.Toggles;
 import de.otto.config.source.aws.AppConfigSource;
+import de.otto.config.source.aws.S3TogglesSource;
 import de.otto.config.source.aws.SecretsManagerSource;
 import de.otto.config.source.aws.SsmSource;
 import de.otto.config.source.file.FileSource;
 import de.otto.config.source.hashicorp.VaultSource;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.appconfigdata.AppConfigDataClient;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
@@ -31,6 +33,28 @@ import software.amazon.awssdk.services.ssm.SsmClient;
 public class CoreSourceFactory implements SourceFactory {
     private static final Set<String> LOCAL_PROFILES = Set.of("local", "test", "integration-test");
     private static final String LOCAL_FILE_SOURCE = "properties.json";
+
+    @SourceCreator("aws.s3.toggles")
+    public static Source<Toggles> createS3TogglesSource(Context context) {
+        if (isLocalProfile(context.getProfile())) {
+            return createFileSource(context, Toggles.empty, Toggles.typeReference, "toggles");
+        }
+
+        String bucketName = context.getConfiguration().getValue("otto.config.aws.s3.toggles.bucket.name");
+        if (bucketName == null) {
+            throw new IllegalArgumentException("Missing required configuration key: otto.config.aws.s3.toggles.bucket.name");
+        }
+        String togglesFolder = context.getConfiguration().getValue("otto.config.aws.s3.toggles.folder.name");
+        if (togglesFolder == null) {
+            throw new IllegalArgumentException("Missing required configuration key: otto.config.aws.s3.toggles.folder.name");
+        }
+        return S3TogglesSource.builder()
+                              .s3Client(context.getClientRegistry().registerIfAbsent(S3Client.class,
+                                                                                     () -> S3Client.builder().build()))
+                              .bucketName(bucketName)
+                              .togglesFolder(togglesFolder)
+                              .build();
+    }
 
     @SourceCreator("aws.appconfig.toggles")
     public static Source<Toggles> createTogglesSource(Context context) {

@@ -12,23 +12,23 @@
 #             routes only AppConfigData calls to it and everything else
 #             still goes to moto.
 #   - moto-init  : seeds moto with the Secrets Manager secret, the SSM
-#                  parameters and the SQS change-notification queue.
+#                  parameters, the SQS change-notification queue and the
+#                  S3 feature-toggles bucket (populated from
+#                  ./s3-toggles/on.* / ./s3-toggles/off.* marker files).
 #   - vault-init : seeds Vault with the KV secret, AppRole policy/role and
 #                  writes role_id / secret_id into ./.env so the demo apps
 #                  can pick them up
 #
-# Usage:
-#   cd demo/local
-#   docker compose up -d
-#   # wait until the *-init containers finished (docker compose ps)
-#   source ./.env
-#   cd ../..  # back to repo root, where the gradle wrapper lives
+# Usage (run every command from the repository root, where ./gradlew lives):
+#   docker compose -f demo/local/docker-compose.yml up -d
+#   # wait until the *-init containers finished (docker compose -f demo/local/docker-compose.yml ps)
+#   source ./demo/local/.env
 #   ./gradlew :demo:spring:bootRun  --args='--spring.profiles.active=moto'
 #   ./gradlew :demo:helidon:run     -Pmp.config.profile=moto
 #   ./gradlew :demo:java:run
 #
 # Tear down:
-#   docker compose down -v
+#   docker compose -f demo/local/docker-compose.yml down -v
 
 services:
   moto:
@@ -107,6 +107,9 @@ services:
       AWS_ENDPOINT_URL: http://moto:5000
     volumes:
       - ./init-moto.sh:/init/init-moto.sh:ro
+      # Sample S3 feature-toggle marker files. The object *name* encodes the
+      # toggle state (on.<name> / off.<name>), the content is irrelevant.
+      - ./s3-toggles:/s3-toggles:ro
     restart: "no"
 
   vault-init:

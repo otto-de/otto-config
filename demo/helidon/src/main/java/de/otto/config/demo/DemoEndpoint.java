@@ -51,8 +51,10 @@ public class DemoEndpoint{
           .append(this.config.getConfigValue("myKey1")).append("\n");
         sb.append("DemoEndpoint loaded with myKey1 from @ConfigProperty: ")
           .append(this.myKey1).append("\n");
-        sb.append("DemoEndpoint loaded with myKey1 from configurationProvider: ").append(value);
-        sb.append("DemoEndpoint loaded with auth.client.id from @PropertyValue: ").append(this.authClientIdVersion);
+        sb.append("DemoEndpoint loaded with myKey1 from configurationProvider: ").append(value).append("\n");
+        sb.append("DemoEndpoint loaded with auth.client.id from @PropertyValue: ").append(this.authClientIdVersion).append("\n");
+        sb.append("DemoEndpoint resolved S3 feature toggle s3_toggle1 to ")
+          .append(this.configurationProvider.getValueAsBoolean("s3_toggle1") ? "ENABLED (serving new code path)" : "DISABLED (serving default code path)");
         return sb.toString();
     }
 }

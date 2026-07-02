@@ -53,6 +53,7 @@ dependencies {
     api "software.amazon.awssdk:secretsmanager:${awsSdkVersion}"
     api "software.amazon.awssdk:ssm:${awsSdkVersion}"
     api "software.amazon.awssdk:sqs:${awsSdkVersion}"
+    api "software.amazon.awssdk:s3:${awsSdkVersion}"
     api "com.google.guava:guava:33.1.0-jre"
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.2'
     
