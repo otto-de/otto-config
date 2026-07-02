@@ -24,6 +24,7 @@ public class DemoService {
     private final io.helidon.config.Config helidonConfig;
     private final boolean loggingEnabled;
     private final Property<Boolean> loggingEnabledProperty;
+    private final Property<Boolean> s3Toggle1;
     private final Property<String> myKey1;
     private final Property<String> myUrl;
     private final List<String> authClientIds;
@@ -35,6 +36,7 @@ public class DemoService {
                        io.helidon.config.Config helidonConfig,
                        @ConfigProperty(name = "logging.enabled") String loggingEnabled,
                        @PropertyValue("logging.enabled") Property<Boolean> loggingEnabledProperty,
+                       @PropertyValue("s3_toggle1") Property<Boolean> s3Toggle1,
                        @PropertyValue("myKey1") Property<String> myKey1,
                        @PropertyValue("my.url") Property<String> myUrl,
                        @ConfigProperty(name = "auth.client.id") List<String> authClientIds,
@@ -44,6 +46,7 @@ public class DemoService {
         this.helidonConfig = helidonConfig;
         this.loggingEnabled = Boolean.parseBoolean(loggingEnabled);
         this.loggingEnabledProperty = loggingEnabledProperty;
+        this.s3Toggle1 = s3Toggle1;
         this.myKey1 = myKey1;
         this.myUrl = myUrl;
         this.authClientIds = authClientIds;
@@ -55,6 +58,8 @@ public class DemoService {
     public void load() {
         boolean value = configurationProvider.getValueAsBoolean("logging_enabled");
         log.info("Toggle value for logging_enabled: " + value);
+        log.info("S3 feature toggle 's3_toggle1' resolved to " + (Boolean.TRUE.equals(s3Toggle1.getValue()) ? "ENABLED (serving new code path)" : "DISABLED (serving default code path)"));
+        log.info("S3 feature toggle 's3_toggle2' resolved to " + (configurationProvider.getValueAsBoolean("s3_toggle2") ? "ENABLED (serving new code path)" : "DISABLED (serving default code path)"));
         log.info("Config value for logging.enabled: " + this.config.getValue("logging.enabled", Boolean.class));
         log.info("HelidonConfig value for logging.enabled: " + this.helidonConfig.get("logging.enabled").asBoolean().get());
         log.info("@ConfigProperty value for logging.enabled: " + this.loggingEnabled);

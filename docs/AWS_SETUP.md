@@ -7,6 +7,7 @@ This guide provides detailed instructions for configuring Otto Config with AWS s
 - [AWS Secrets Manager](#aws-secrets-manager)
 - [AWS Parameter Store (SSM)](#aws-parameter-store-ssm)
 - [Hashicorp Vault](#hashicorp-vault)
+- [AWS S3 (Feature Toggles)](#aws-s3-feature-toggles)
 - [Event-Driven Refresh](#event-driven-refresh)
 
 ## AWS AppConfig
@@ -297,6 +298,43 @@ List<String> allVersions = password.getVersions();
 - Configure **lease durations** appropriate for your use case
 - Use **dynamic secrets** for database credentials when possible
 - Implement **secret rotation** policies
+
+## AWS S3 (Feature Toggles)
+
+Read feature toggles from objects in an S3 bucket. The **toggle state is encoded
+in the object name** and the object content is never read:
+
+| Object key                                   | Resulting toggle               |
+|----------------------------------------------|--------------------------------|
+| `feature-toggles/on.my-feature`              | `my-feature` = `true`          |
+| `feature-toggles/off.my-feature`             | `my-feature` = `false`         |
+| `feature-toggles/on.team.my-feature`         | `team.my-feature` = `true`     |
+
+The `on.`/`off.` prefix is case-insensitive. The toggle name is the object name
+after the first dot, used verbatim (no aliasing). Objects under the prefix that
+start with neither `on.` nor `off.` are ignored.
+
+### Enable the source
+
+```properties
+otto.config.sources.enabled=aws.s3.toggles
+otto.config.aws.s3.toggles.bucket.name=my-service-bucket
+otto.config.aws.s3.toggles.folder.name=feature-toggles/
+```
+
+In local/test profiles the source falls back to the `toggles` section of
+`properties.json`, like the other sources.
+
+### IAM permissions
+
+Only listing is required — the source never reads object content:
+
+```yaml
+- Effect: Allow
+  Action:
+    - s3:ListBucket
+  Resource: "arn:aws:s3:::my-service-bucket"
+```
 
 ## Event-Driven Refresh
 

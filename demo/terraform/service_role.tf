@@ -9,7 +9,8 @@
 #   1. Trust policy   – allows ECS tasks (or EC2 instances running your JVM) to
 #                       assume the role.
 #   2. Otto Config policy  – minimum read permissions for every AWS source type that
-#                       Otto Config supports: AppConfig, Secrets Manager, and SSM.
+#                       Otto Config supports: AppConfig, Secrets Manager, SSM, and
+#                       S3 feature toggles.
 #   3. Vault auth     – sts:GetCallerIdentity so that VaultAwsAuthenticator can
 #                       prove its identity to the HashiCorp Vault AWS auth backend.
 #   4. SQS consumer   – automatically attached by the reusable Otto Config Terraform
@@ -50,6 +51,7 @@ resource "aws_iam_role" "service_role" {
 #   - AppConfigSource       → appconfig + appconfigdata APIs
 #   - SecretsManagerSource  → secretsmanager:GetSecretValue
 #   - SsmSource             → ssm:GetParameter(s) / ssm:GetParametersByPath
+#   - S3TogglesSource       → s3:ListBucket (toggle state is in the object name)
 #   - VaultAwsAuthenticator → sts:GetCallerIdentity (does not call STS itself;
 #                             the Vault server calls back with this identity)
 # ---------------------------------------------------------------------------
@@ -94,11 +96,19 @@ data "aws_iam_policy_document" "otto_config_sources" {
     resources = ["*"]
   }
 
+  # S3 feature toggles – list the toggle objects (content is never read)
+  statement {
+    sid       = "S3TogglesList"
+    effect    = "Allow"
+    actions   = ["s3:ListBucket"]
+    resources = [aws_s3_bucket.feature_toggles.arn]
+  }
+
   # Vault AWS auth – Vault calls back to STS to verify the caller identity
   statement {
-    sid     = "VaultAwsAuth"
-    effect  = "Allow"
-    actions = ["sts:GetCallerIdentity"]
+    sid       = "VaultAwsAuth"
+    effect    = "Allow"
+    actions   = ["sts:GetCallerIdentity"]
     resources = ["*"]
   }
 }

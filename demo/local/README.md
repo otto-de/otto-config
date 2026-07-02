@@ -8,22 +8,25 @@ account + corporate Vault that the demo services normally use. It runs:
 | `moto` | `motoserver/moto:latest` | `5000` | Mocks SecretsManager, SSM, SQS, EventBridge and STS. |
 | `vault` | `hashicorp/vault:latest` | `8200` | Vault in dev mode (root token: `myroot`). |
 | `appconfigdata-stub` | `eclipse-temurin:21-jdk` | `5001` | JDK-only Java HTTP server (single-file source, no build) that mimics the AWS AppConfigData data plane and serves the JSON files under `../terraform/`. Moto does not implement `appconfigdata`, so the SDK is pointed here for that one service via `AWS_ENDPOINT_URL_APPCONFIGDATA`. |
-| `moto-init` | `amazon/aws-cli:latest` | – | Seeds moto with the Secrets Manager secret, SSM parameters and the SQS change-notification queue. |
+| `moto-init` | `amazon/aws-cli:latest` | – | Seeds moto with the Secrets Manager secret, SSM parameters, the SQS change-notification queue and the `otto-config-feature-toggles` S3 bucket (populated from the `on.*` / `off.*` marker files in `./s3-toggles/`). |
 | `vault-init` | `hashicorp/vault:latest` | – | Seeds Vault with the KV mount, policy, AppRole and demo secret; writes `role_id` / `secret_id` and AWS-endpoint env vars into `./.env`. |
 
 ## Quick start
 
-```bash
-# From the repo root
-docker compose -f demo/local/docker-compose.yml up -d
+Run **every** command below from the repository root: the `./gradlew`
+wrapper lives there, and the paths used here (`demo/local/...`) are
+relative to it.
 
-docker compose logs -f moto-init vault-init   # Ctrl-C once both print "bootstrap done."
+```bash
+# 1. Start moto + vault and seed them
+docker compose -f demo/local/docker-compose.yml up -d
+docker compose -f demo/local/docker-compose.yml logs -f moto-init vault-init
+#    ^ Ctrl-C once both print "bootstrap done."
 
 # 2. Export the generated credentials + AWS endpoint override
 source ./demo/local/.env
 
-# 3. Run one of the demos from the repo root (the Gradle wrapper only
-#    lives there) — it will talk to moto/vault, not real AWS.
+# 3. Run one of the demos (it talks to moto/vault, not real AWS)
 ./gradlew :demo:spring:bootRun  --args='--spring.profiles.active=moto'
 # or
 ./gradlew :demo:helidon:run     -Pmp.config.profile=moto
@@ -31,7 +34,7 @@ source ./demo/local/.env
 ./gradlew :demo:java:run
 
 # 4. Tear it all down
-cd demo/local && docker compose down -v
+docker compose -f demo/local/docker-compose.yml down -v
 ```
 
 ## How the demo picks up the mocks
@@ -100,8 +103,9 @@ container at `/data`, so editing `appconfig_properties.json` /
 Try it:
 
 ```bash
-# 1. Start everything and run the Spring demo (repo root shell):
-cd demo/local && docker compose up -d && source ./.env && cd ../..
+# 1. Start everything and run the Spring demo (from the repository root):
+docker compose -f demo/local/docker-compose.yml up -d
+source ./demo/local/.env
 ./gradlew :demo:spring:bootRun --args='--spring.profiles.active=moto'
 ```
 
@@ -178,7 +182,7 @@ demo/local/notify-change.sh ssm /search/develop/otto-config/config/some_ssm_valu
 `init-moto.sh` deletes and re-creates every resource, so simply running
 
 ```bash
-docker compose up -d --force-recreate moto-init
+docker compose -f demo/local/docker-compose.yml up -d --force-recreate moto-init
 ```
 
 resets the Secrets Manager secret, SSM parameters and SQS queue.
