@@ -40,11 +40,19 @@ public class CoreSourceFactory implements SourceFactory {
             return createFileSource(context, Toggles.empty, Toggles.typeReference, "toggles");
         }
 
+        String bucketName = context.getConfiguration().getValue("otto.config.aws.s3.toggles.bucket.name");
+        if (bucketName == null) {
+            throw new IllegalArgumentException("Missing required configuration key: otto.config.aws.s3.toggles.bucket.name");
+        }
+        String togglesFolder = context.getConfiguration().getValue("otto.config.aws.s3.toggles.folder.name");
+        if (togglesFolder == null) {
+            throw new IllegalArgumentException("Missing required configuration key: otto.config.aws.s3.toggles.folder.name");
+        }
         return S3TogglesSource.builder()
                               .s3Client(context.getClientRegistry().registerIfAbsent(S3Client.class,
                                                                                      () -> S3Client.builder().build()))
-                              .bucketName(context.getConfiguration().getValue("otto.config.aws.s3.toggles.bucket.name"))
-                              .togglesFolder(context.getConfiguration().getValue("otto.config.aws.s3.toggles.folder.name"))
+                              .bucketName(bucketName)
+                              .togglesFolder(togglesFolder)
                               .build();
     }
 

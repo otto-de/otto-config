@@ -23,6 +23,7 @@ import static de.otto.config.fixture.MockAwsClients.withMockedAwsClients;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class CoreSourceFactoryTest {
 
@@ -398,5 +399,33 @@ public class CoreSourceFactoryTest {
         // then
         assertThat(sources, hasSize(1));
         assertThat(sources.get(0), instanceOf(FileSource.class));
+    }
+
+    @Test
+    void shouldThrowIllegalArgumentExceptionWhenBucketNameIsMissing() {
+        withMockedAwsClients(() -> {
+            // given
+            ConfigurationCache<String> configuration = new ConfigurationCache<>(Map.of(
+                    "otto.config.aws.s3.toggles.folder.name", "feature-toggles/"));
+            Context context = Context.from("otto-config", "develop", configuration);
+
+            // when / then
+            assertThrows(IllegalArgumentException.class,
+                    () -> CoreSourceFactory.createS3TogglesSource(context));
+        });
+    }
+
+    @Test
+    void shouldThrowIllegalArgumentExceptionWhenFolderNameIsMissing() {
+        withMockedAwsClients(() -> {
+            // given
+            ConfigurationCache<String> configuration = new ConfigurationCache<>(Map.of(
+                    "otto.config.aws.s3.toggles.bucket.name", "service-bucket"));
+            Context context = Context.from("otto-config", "develop", configuration);
+
+            // when / then
+            assertThrows(IllegalArgumentException.class,
+                    () -> CoreSourceFactory.createS3TogglesSource(context));
+        });
     }
 }
