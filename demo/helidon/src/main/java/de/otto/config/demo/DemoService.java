@@ -58,7 +58,7 @@ public class DemoService {
     public void load() {
         boolean value = configurationProvider.getValueAsBoolean("logging_enabled");
         log.info("Toggle value for logging_enabled: " + value);
-        log.info("S3 feature toggle 's3_toggle1' resolved to " + (s3Toggle1.getValue() ? "ENABLED (serving new code path)" : "DISABLED (serving default code path)"));
+        log.info("S3 feature toggle 's3_toggle1' resolved to " + (Boolean.TRUE.equals(s3Toggle1.getValue()) ? "ENABLED (serving new code path)" : "DISABLED (serving default code path)"));
         log.info("S3 feature toggle 's3_toggle2' resolved to " + (configurationProvider.getValueAsBoolean("s3_toggle2") ? "ENABLED (serving new code path)" : "DISABLED (serving default code path)"));
         log.info("Config value for logging.enabled: " + this.config.getValue("logging.enabled", Boolean.class));
         log.info("HelidonConfig value for logging.enabled: " + this.helidonConfig.get("logging.enabled").asBoolean().get());
