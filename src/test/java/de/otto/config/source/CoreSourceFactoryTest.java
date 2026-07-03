@@ -133,14 +133,7 @@ public class CoreSourceFactoryTest {
         assertThat(sources, hasSize(2));
         assertThat(sources.get(0), instanceOf(FileSource.class));
 
-        FileSource<Toggles> toggleFileSource = (FileSource<Toggles>) sources.get(0);
-        Toggles toggles = toggleFileSource.getOrLoad();
-        assertThat(toggles.getProperties(), aMapWithSize(2));
-        assertThat(toggles.getProperties(), hasEntry("another_toggle", false));
-        assertThat(toggles.getProperties(), hasEntry("ftsn-415-test-toggle", true));
-
-
-        FileSource<Properties> propertyFileSource = (FileSource<Properties>) sources.get(1);
+        FileSource<Properties> propertyFileSource = (FileSource<Properties>) sources.get(0);
         Properties properties = propertyFileSource.getOrLoad();
         assertThat(properties.getProperties(), aMapWithSize(10));
         assertThat(properties.getProperties(), hasEntry("myKey1", "myValue"));
@@ -152,6 +145,12 @@ public class CoreSourceFactoryTest {
         assertThat(properties.getProperties(), hasEntry("my.ssm.property2", "ssm-value2"));
         assertEquals("secret-value1", properties.getProperties().get("my.secret1"));
         assertEquals("secret-value2", properties.getProperties().get("my.secret2"));
+
+        FileSource<Toggles> toggleFileSource = (FileSource<Toggles>) sources.get(1);
+        Toggles toggles = toggleFileSource.getOrLoad();
+        assertThat(toggles.getProperties(), aMapWithSize(2));
+        assertThat(toggles.getProperties(), hasEntry("another_toggle", false));
+        assertThat(toggles.getProperties(), hasEntry("ftsn-415-test-toggle", true));
     }
 
     @Test
