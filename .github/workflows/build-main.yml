@@ -3,9 +3,14 @@ name: Build Main Branch
 on:
   workflow_dispatch:
   push:
-    branches: [ main, master ]
+    branches:
+      - main
+      - 'feat/**'
+      - 'fix/**'
+      - 'chore/**'
   pull_request:
-    branches: [ main, master ]
+    branches:
+      - 'main'
 
 jobs:
   build:
