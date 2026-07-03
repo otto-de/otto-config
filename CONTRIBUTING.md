@@ -58,6 +58,21 @@ If you find a bug or have a feature request:
 - Add JavaDoc for public APIs
 - Update relevant files in `docs/` for advanced topics
 - Include code examples where helpful
+- **Add an entry to [CHANGELOG.md](CHANGELOG.md) under the next `## <version>` heading for any user-facing change** — the release workflow requires it
+
+## Release Process
+
+Releases are automated via GitHub Actions using [JReleaser](https://jreleaser.org/). The workflow publishes to Maven Central and GitHub Packages, creates the git tag, and drafts the GitHub Release.
+
+**Quick steps:**
+
+1. Update `otto_config_version` in `build.gradle` (drop the `-SNAPSHOT` suffix)
+2. Add a `## <version>` section in `CHANGELOG.md` describing the changes
+3. Commit and push
+4. Trigger the workflow: `gh workflow run release.yml -f version=<version>` (or via the Actions UI)
+5. After success, bump `build.gradle` back to the next `X.Y.Z-SNAPSHOT`
+
+See **[PUBLISHING.md](PUBLISHING.md)** for full details, credential requirements, and how to retry failed releases.
 
 ## Development Setup
 

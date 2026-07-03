@@ -30,7 +30,7 @@ A Java library for dynamic, centralized configuration management using AWS AppCo
 **Gradle:**
 ```groovy
 dependencies {
-    implementation "de.otto.config:otto-config:0.1.2"
+    implementation "de.otto.config:otto-config:0.1.8"
 }
 ```
 
@@ -39,7 +39,7 @@ dependencies {
 <dependency>
     <groupId>de.otto.config</groupId>
     <artifactId>otto-config</artifactId>
-    <version>0.1.2</version>
+    <version>0.1.8</version>
 </dependency>
 ```
 
@@ -136,12 +136,12 @@ Use Java interop to access Otto Config:
 
 **Add dependency (deps.edn):**
 ```clojure
-{:deps {de.otto.config/otto-config {:mvn/version "0.1.2"}}}
+{:deps {de.otto.config/otto-config {:mvn/version "0.1.8"}}}
 ```
 
 **Or with Leiningen (project.clj):**
 ```clojure
-:dependencies [[de.otto.config/otto-config "0.1.2"]]
+:dependencies [[de.otto.config/otto-config "0.1.8"]]
 ```
 
 **Usage:**
@@ -250,7 +250,8 @@ For detailed AWS setup instructions, IAM permissions, and Terraform examples, se
 - **[Advanced Topics](docs/ADVANCED.md)** — Architecture diagrams, custom sources, custom providers, priority order
 - **[Development Guide](docs/DEVELOPMENT.md)** — Local development setup, VS Code configuration, testing
 - **[Contributing](CONTRIBUTING.md)** — How to contribute to the project
-- **[Publishing](PUBLISHING.md)** — Release and publishing process
+- **[Publishing](PUBLISHING.md)** — Release and publishing process (JReleaser → Maven Central + GitHub Packages)
+- **[Changelog](CHANGELOG.md)** — Release notes per version
 
 ## Examples
 

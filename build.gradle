@@ -2,7 +2,6 @@ plugins {
     id 'java'
     id 'java-library'
     id 'maven-publish'
-    id 'signing'
     id 'org.jreleaser' version '1.24.0'
 }
 
@@ -126,26 +125,10 @@ publishing {
     }
     
     repositories {
+        // Publish to a local staging directory. JReleaser uploads from here
+        // to both GitHub Packages and Maven Central.
         maven {
-            name = 'GitHubPackages'
-            url = uri("https://maven.pkg.github.com/otto-de/otto-config")
-            credentials {
-                username = System.getenv("GITHUB_ACTOR") ?: findProperty("gpr.user")
-                password = System.getenv("GITHUB_TOKEN") ?: findProperty("gpr.token")
-            }
-        }
-        maven {
-            name = 'MavenCentral'
-            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-            credentials {
-                username = System.getenv("MAVENCENTRAL_USERNAME") ?: findProperty("mavenCentral.username")
-                password = System.getenv("MAVENCENTRAL_PASSWORD") ?: findProperty("mavenCentral.password")
-            }
-        }
-        maven {
-            name = 'staging'
-            // Publish to local staging directory for JReleaser to upload
-            url = layout.buildDirectory.dir('staging-deploy')
+            url = layout.settingsDirectory.dir('build/staging-deploy')
         }
     }
 }
@@ -155,6 +138,13 @@ jreleaser {
         github {
             update {
                 enabled = true
+            }
+            changelog {
+                // Use the pre-extracted section from CHANGELOG.md as the GitHub release body.
+                // Written by the "Build release notes" step in release.yml.
+                // When running locally this file won't exist, so JReleaser falls back
+                // to its own commit-log based changelog automatically.
+                external = 'build/release-notes.md'
             }
         }
     }
@@ -167,17 +157,13 @@ jreleaser {
     signing {
         active = 'ALWAYS'
         armored = true
-        verify = false  // Don't require public key - JReleaser will extract it from secret key
-        publicKey = System.getenv('JRELEASER_GPG_PUBLIC_KEY') ?: ''
-        secretKey = System.getenv('JRELEASER_GPG_SECRET_KEY') ?: ''
-        passphrase = System.getenv('JRELEASER_GPG_PASSPHRASE') ?: ''
     }
     deploy {
         maven {
             github {
                 app {
                     snapshotSupported = true
-                    active = System.getenv('JRELEASER_DEPLOY_MAVEN_GITHUB_ACTIVE') ?: 'ALWAYS'
+                    active = 'ALWAYS'
                     url = "https://maven.pkg.github.com/otto-de/otto-config"
                     stagingRepository('build/staging-deploy')
                 }
@@ -185,26 +171,19 @@ jreleaser {
             mavenCentral {
                 app {
                     snapshotSupported = false
-                    active = System.getenv('JRELEASER_DEPLOY_MAVEN_MAVENCENTRAL_ACTIVE') ?: 'ALWAYS'
+                    active = 'ALWAYS'
                     url = 'https://central.sonatype.com/api/v1/publisher'
                     stagingRepository('build/staging-deploy')
+
+                    // Time to wait between state transition checks, in seconds.
                     retryDelay = 10
+
+                    // Maximum number of attempts to verify state transition.
+                    // Maven Central release can take up to 40 minutes.
                     maxRetries = 240
                 }
             }
         }
-    }
-}
-
-signing {
-    def signingKey = findProperty("signingKey") ?: System.getenv("GPG_SIGNING_KEY")
-    def signingPassword = findProperty("signingPassword") ?: System.getenv("GPG_SIGNING_PASSWORD")
-    if (signingKey && signingPassword) {
-        useInMemoryPgpKeys(signingKey, signingPassword)
-        sign publishing.publications.mavenJava
-    } else {
-        // JReleaser will handle signing if Gradle signing is not configured
-        logger.warn("Gradle signing not configured - JReleaser will handle signing")
     }
 }
 
