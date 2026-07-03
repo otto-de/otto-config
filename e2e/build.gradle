@@ -1,0 +1,66 @@
+import java.time.Duration
+
+plugins {
+    id 'java'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junit5Version}"
+    testImplementation "org.assertj:assertj-core"
+    testImplementation "org.awaitility:awaitility:4.2.2"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junit5Version}"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+// The E2E test launches each demo (spring/helidon/java) as a subprocess.
+// Real env vars are required by the AWS SDK for endpoint URL overrides,
+// which System.setProperty cannot fake. Build the artifacts and expose
+// their paths via system properties.
+tasks.named('test') {
+    dependsOn(':demo:spring:bootJar')
+    dependsOn(':demo:helidon:installDist')
+    dependsOn(':demo:java:installDist')
+    doFirst {
+        def bootJar = project(':demo:spring').tasks.named('bootJar').get().archiveFile.get().asFile
+        systemProperty 'e2e.spring.jar', bootJar.absolutePath
+
+        def helidonInstall = project(':demo:helidon').layout.buildDirectory
+                .dir('install/' + project(':demo:helidon').name).get().asFile
+        systemProperty 'e2e.helidon.install.dir', helidonInstall.absolutePath
+
+        def javaInstall = project(':demo:java').layout.buildDirectory
+                .dir('install/' + project(':demo:java').name).get().asFile
+        systemProperty 'e2e.java.install.dir', javaInstall.absolutePath
+    }
+}
+
+test {
+    useJUnitPlatform()
+
+    // E2E requires docker and is expensive; do not run as part of a plain
+    // `./gradlew check` at the root. Enable explicitly with `-PrunE2E` or by
+    // running the task directly: `./gradlew :e2e:test -PrunE2E`.
+    onlyIf {
+        project.hasProperty('runE2E') ||
+        gradle.startParameter.taskNames.any { it == ':e2e:test' || it == 'e2e:test' }
+    }
+
+    timeout = Duration.ofMinutes(10)
+
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+        exceptionFormat = "full"
+    }
+}

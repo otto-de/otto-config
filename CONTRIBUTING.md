@@ -52,6 +52,19 @@ If you find a bug or have a feature request:
 - Aim for good test coverage
 - Test with multiple configuration sources
 
+#### End-to-end tests
+
+The `:e2e` subproject exercises all three demo apps (Spring, Helidon, plain Java) against
+the real `demo/local/` docker-compose stack (moto + vault + appconfigdata-stub). Each demo
+exposes a `GET /config` endpoint; the test asserts on the seeded fixture values.
+
+E2E tests are opt-in — they're excluded from `./gradlew check` (they need Docker and are slow).
+Run them locally with:
+
+```
+./gradlew :e2e:test -PrunE2E
+```
+
 ### Documentation
 
 - Update the README for user-facing changes
