@@ -1,4 +1,4 @@
-name: Build Main Branch
+name: Build & Test
 
 on:
   workflow_dispatch:
