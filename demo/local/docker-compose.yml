@@ -119,6 +119,10 @@ services:
       vault:
         condition: service_healthy
     entrypoint: ["/bin/sh", "/init/init-vault.sh"]
+    # Run as root so /out/.env (bind-mounted from the host repo checkout)
+    # can be written on Linux runners where the mount preserves host UIDs
+    # and the default `vault` user has no write access.
+    user: "0:0"
     environment:
       VAULT_ADDR: http://vault:8200
       VAULT_TOKEN: myroot

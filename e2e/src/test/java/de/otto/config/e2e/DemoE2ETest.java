@@ -387,16 +387,37 @@ class DemoE2ETest {
     }
 
     private static void waitForEnvFile() {
-        await().alias("waiting for " + ENV_FILE)
-               .atMost(Duration.ofMinutes(3))
-               .pollInterval(Duration.ofSeconds(1))
-               .until(() -> {
-                   if (!Files.exists(ENV_FILE) || Files.size(ENV_FILE) == 0) {
-                       return false;
-                   }
-                   String content = new String(Files.readAllBytes(ENV_FILE), StandardCharsets.UTF_8);
-                   return content.contains("VAULT_ROLE_ID=") && content.contains("VAULT_SECRET_ID=");
-               });
+        try {
+            await().alias("waiting for " + ENV_FILE)
+                   .atMost(Duration.ofMinutes(3))
+                   .pollInterval(Duration.ofSeconds(1))
+                   .until(() -> {
+                       if (!Files.exists(ENV_FILE) || Files.size(ENV_FILE) == 0) {
+                           return false;
+                       }
+                       String content = new String(Files.readAllBytes(ENV_FILE), StandardCharsets.UTF_8);
+                       return content.contains("VAULT_ROLE_ID=") && content.contains("VAULT_SECRET_ID=");
+                   });
+        } catch (RuntimeException e) {
+            System.err.println("---- vault-init logs (dumped on env-file timeout) ----");
+            dumpComposeLogsQuietly("vault-init");
+            System.err.println("---- vault logs ----");
+            dumpComposeLogsQuietly("vault");
+            System.err.println("---- docker compose ps ----");
+            runComposeQuietly("ps", "-a");
+            throw e;
+        }
+    }
+
+    private static void dumpComposeLogsQuietly(String service) {
+        runComposeQuietly("logs", "--no-color", service);
+    }
+
+    private static void runComposeQuietly(String... args) {
+        try {
+            dockerCompose(args);
+        } catch (Exception ignored) {
+        }
     }
 
     private static Map<String, String> parseEnvFile(Path envFile) throws IOException {
