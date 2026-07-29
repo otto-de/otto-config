@@ -15,15 +15,18 @@ public final class SourceAggregator {
     private static final Pattern LEADING_DOTS_PATTERN = Pattern.compile("^\\.+");
 
     public static <T> Map<String, T> aggregate(List<Source<? extends Configuration<?>>> sources, Function<Object, T> valueTransformer, boolean normalizeKeys) {
-        return aggregate(sources, valueTransformer, normalizeKeys, true);
+        return aggregate(sources, valueTransformer, normalizeKeys, true, false);
     }
 
-    public static <T> Map<String, T> aggregate(List<Source<? extends Configuration<?>>> sources, Function<Object, T> valueTransformer, boolean normalizeKeys, boolean forceReload) {
+    public static <T> Map<String, T> aggregate(List<Source<? extends Configuration<?>>> sources, Function<Object, T> valueTransformer, boolean normalizeKeys, boolean forceReload, boolean excludeSecrets) {
         Map<String, T> result = new HashMap<>();
         
         sources.forEach(source -> {
             source.getOrLoad(forceReload).getProperties().forEach((key, value) -> {
                 if (!result.containsKey(key)) {
+                    if (excludeSecrets && source.hasSecrets()) {
+                        return; // omit secret-sourced properties entirely
+                    }
                     T transformedValue = valueTransformer.apply(value);
                     result.putIfAbsent(key, transformedValue);
                     

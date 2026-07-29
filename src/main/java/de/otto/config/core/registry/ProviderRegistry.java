@@ -7,11 +7,13 @@ import lombok.Builder;
 @Builder
 public class ProviderRegistry extends ListRegistry<Provider<?>> implements Refreshable {
 
+    @SuppressWarnings("null")
     @Override
     public void refresh() {
         this.values.forEach(Provider::refresh);
     }
 
+    @SuppressWarnings("null")
     @Override
     public void refreshInPlace() {
         this.values.forEach(Provider::refreshInPlace);

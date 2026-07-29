@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.util.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.*;
 
 public class SourceAggregatorTest {
@@ -46,6 +47,25 @@ public class SourceAggregatorTest {
         assertThat(result, aMapWithSize(2));
         assertThat(result, hasEntry("foo_bar/baz", "v"));
         assertThat(result, hasEntry("foo.bar.baz", "v"));
+    }
+
+    @Test
+    void shouldAggregateWithNormalizationExcludeSecrets() {
+        // given
+        Source<Configuration<String>> source = mockSource(Map.of("foo_bar/baz", "abcdefghijklmnop"));
+        when(source.hasSecrets()).thenReturn(true);
+
+        // when
+        Map<String, String> result = SourceAggregator.aggregate(
+                List.of(source),
+                v -> (String) v,
+                true,
+                true,
+                true
+        );
+
+        // then
+        assertThat(result, aMapWithSize(0));
     }
 
     @Test

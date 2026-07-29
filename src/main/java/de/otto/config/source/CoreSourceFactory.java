@@ -98,7 +98,8 @@ public class CoreSourceFactory implements SourceFactory {
             return createFileSource(context);
         }
 
-        String ssmPath = context.getConfiguration().getValue("otto.config.aws.ssm.path.prefix", "/");
+        String ssmPath = context.getConfiguration().getValue(context.getAppName() + ".otto.config.aws.ssm.path.prefix",
+                                                             context.getConfiguration().getValue("otto.config.aws.ssm.path.prefix", "/"));
         List<PropertySource> sources = Arrays.stream(ssmPath.split(",")).map(path -> {
             return SsmSource.builder()
                             .applicationIdentifier(context.getAppName())
@@ -106,6 +107,7 @@ public class CoreSourceFactory implements SourceFactory {
                                                                                     () -> SsmClient.builder().build()))
                             .ssmPathPrefix(path)
                             .isPullRefreshEnabled(isPullRefreshEnabled(context))
+                            .excludeSecrets(context.getExcludeSecrets())
                             .build();
         }).collect(Collectors.toList());
         return CombinedPropertySource.builder().sources(sources).build();

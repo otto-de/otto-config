@@ -102,6 +102,7 @@ public class PropertySourceTest {
         assertThat(dest.get("c"), is("3"));
     }
 
+    @SuppressWarnings("null")
     @Test
     void shouldMergeAsListValuesWithKeyFormatterWhenKeyExists() {
         // given
@@ -118,6 +119,7 @@ public class PropertySourceTest {
         assertThat(dest.get("FOO"), is("baz,bar"));
     }
 
+    @SuppressWarnings("null")
     @Test
     void shouldMergeAsListValuesWithKeyFormatterWhenKeyDoesNotExist() {
         // given
@@ -133,6 +135,7 @@ public class PropertySourceTest {
         assertThat(dest.get("FOO"), is("bar"));
     }
 
+    @SuppressWarnings("null")
     @Test
     void shouldMergeMultipleKeysWithKeyFormatter() {
         // given
@@ -153,6 +156,7 @@ public class PropertySourceTest {
         assertThat(dest.get("C"), is("3"));
     }
 
+    @SuppressWarnings("null")
     @Test
     void shouldHandleEmptySourceWithKeyFormatter() {
         // given

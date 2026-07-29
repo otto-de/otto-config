@@ -16,6 +16,7 @@ import lombok.Setter;
 public final class Context {
     private final @NonNull String appName;
     private final String profile;
+    private final Boolean excludeSecrets;
     @Setter
     private volatile Configuration<String> configuration;
     private final ClientRegistry clientRegistry;
@@ -27,11 +28,13 @@ public final class Context {
     @Builder
     public Context(String appName,
                    String profile,
+                   Boolean excludeSecrets,
                    Configuration<String> configuration,
                    ClientRegistry clientRegistry,
                    PropertyRegistry propertyRegistry) {
         this.appName = appName;
         this.profile = profile;
+        this.excludeSecrets = excludeSecrets != null ? excludeSecrets : Boolean.FALSE;
         this.configuration = configuration;
         this.clientRegistry = clientRegistry != null ? clientRegistry : ClientRegistry.createDefault();
         this.sourceRegistry = SourceRegistry.from(this);
@@ -45,6 +48,7 @@ public final class Context {
         propertyRegistry.refresh();
     }
 
+    @SuppressWarnings("null")
     public void pollAndRefresh() {
         if (!sourceChangeEventListeners.isEmpty()) {
             sourceChangeEventListeners.forEach(SourceChangeEventListener::pollAndRefresh);

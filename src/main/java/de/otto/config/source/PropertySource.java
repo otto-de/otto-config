@@ -38,6 +38,7 @@ public abstract class PropertySource extends Source<Properties> {
                 });
     }
 
+    @SuppressWarnings("null")
     protected Map<String, String> mergeEntriesAsListValues(Stream<Map.Entry<String, String>> entries,
                                                            Function<String, String> keyFormatter) {
         return entries

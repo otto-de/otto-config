@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
 import software.amazon.awssdk.services.ssm.model.Parameter;
+import software.amazon.awssdk.services.ssm.model.ParameterType;
 import software.amazon.awssdk.services.ssm.paginators.GetParametersByPathIterable;
 
 @Builder
@@ -31,6 +32,7 @@ public class SsmSource extends PropertySource {
     private final @NonNull String ssmPathPrefix = "/";
     @Builder.Default
     private final boolean isPullRefreshEnabled = true;
+    private final boolean excludeSecrets;
 
     @Override
     public boolean isPullRefreshEnabled() {
@@ -60,6 +62,9 @@ public class SsmSource extends PropertySource {
                 return page.parameters().stream();
             }).forEach((param) -> {
                 System.out.println("Read SSM parameter: name='" + param.name() + "', valuePrefix='" + firstThreeChars(param.value()) + "...'");
+                if (this.excludeSecrets && param.type() == ParameterType.SECURE_STRING) {
+                    return; // exclude this parameter entirely
+                }
                 properties.put(param.name(), param.value());
 
                 addServiceLevelProperty(properties, param);

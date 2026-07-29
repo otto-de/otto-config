@@ -33,6 +33,11 @@ public class SecretsManagerSource extends PropertySource {
     private static final String VERSION_SUFFIX_REGEX = "_(" + String.join("|", VERSIONS) + ")$";
     private static final String EMPTY_BODY = "{}";
 
+    @Override
+    public boolean hasSecrets() {
+        return true;
+    }
+
     @Builder
     private SecretsManagerSource(String secretARN,
                                  SecretsManagerClient secretsManagerClient,

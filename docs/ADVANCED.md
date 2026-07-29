@@ -5,6 +5,7 @@ This document covers advanced customization and architecture details for Otto Co
 ## Table of Contents
 - [Architecture](#architecture)
 - [Priority Order](#priority-order)
+- [REST API](#-rest-api)
 - [Adding Custom Sources](#adding-custom-sources)
 - [Implementing a Custom Provider](#implementing-a-custom-provider)
 
@@ -44,9 +45,11 @@ flowchart TD
     %% Framework Integration
     subgraph B[🔗 Framework Integration]
         B1[<b>SpringPropertySource</b><br/><small>Integrates Otto Config with Spring's config system</small>] --> 
-        B2[<b>SpringSchedulerConfiguration</b><br/><small>Triggers periodic config refresh in Spring</small>]  --> 
-        B3[<b>HelidonPropertySource</b><br/><small>Integrates Otto Config with Helidon's config system</small>] --> 
-        B4[<b>HelidonSchedulerConfiguration</b><br/><small>Triggers periodic config refresh in Helidon</small>]
+        B2[<b>SpringSchedulerConfiguration</b><br/><small>Triggers periodic config refresh in Spring</small>]  -->
+        B3[**SpringConfigurationEndpoint**<br/><small>Exposes a REST API in Spring to access configuration values</small>] -->  
+        B4[<b>HelidonPropertySource</b><br/><small>Integrates Otto Config with Helidon's config system</small>] --> 
+        B5[<b>HelidonSchedulerConfiguration</b><br/><small>Triggers periodic config refresh in Helidon</small>] --> 
+        B6[**HelidonConfigurationEndpoint**<br/><small>Exposes a REST API in Helidon to access configuration values</small>]
     end
 
     %% Core Components
@@ -88,7 +91,7 @@ flowchart TD
     classDef externalStyle fill:#ffebee,stroke:#d32f2f,stroke-width:2px,color:#000
 
     class A1,A2 appStyle
-    class B1,B2,B3,B4 frameworkStyle
+    class B1,B2,B3,B4,B5,B6 frameworkStyle
     class C1,C3,C4,C5,C6,C7,C8,C8 coreStyle
     class D1,D2,D3,D4,D5 sourceStyle
 
@@ -142,6 +145,103 @@ Configuration properties are resolved in this order (highest to lowest priority)
 3. **Local application config** (application.properties, application.yml)  
 
 This enables local overrides via environment variables for development and testing while maintaining production configurations.
+
+## 🔑 REST API
+
+Spring and Helidon applications can optionally expose configuration values through a REST API using the built-in `SpringConfigurationEndpoint` (for Spring) or `HelidonConfigurationEndpoint` (for Helidon) classes. This capability enables both the current application and any additional applications you specify to serve configuration data via HTTP endpoints. It is especially useful for non-Java clients—such as frontend applications or services in other languages—that need access to centralized configuration without direct Java integration.
+
+**Available Endpoints:**
+```shell
+# Configuration
+GET /configs                   # Returns all properties for the current application
+GET /configs/{key}             # Returns the property value for the current application
+GET /{app}/configs             # Returns all properties for the specified application
+GET /{app}/configs/{key}       # Returns the property value for a specified application
+```
+
+**Enabling the Endpoint:**
+
+To activate the REST endpoints, add this property to your application configuration:
+
+```properties
+otto.config.endpoint.configs.enabled=true      # Enable configuration endpoint
+```
+
+**Exposing Multiple Applications:**
+
+To expose configuration values for additional applications managed by Otto Config, specify a comma-separated list of app names in your configuration:
+
+```properties
+otto.config.endpoint.configs.apps=app1,app2,app3
+```
+
+This enables the REST endpoints to serve configuration data for each listed application, allowing centralized access across multiple services.
+
+**Setting SSM Path Prefix Per App:**
+
+If you want to filter SSM parameters by path for each app, specify a prefix property for each app:
+
+```properties
+app1.otto.config.aws.ssm.path.prefix=/service/app1
+app2.otto.config.aws.ssm.path.prefix=/service/app2
+app3.otto.config.aws.ssm.path.prefix=/service/app3
+```
+
+If no app-specific prefix is set, Otto Config will fall back to the default SSM path prefix as described in the [AWS Parameter Store](#-aws-parameter-store) section.
+
+> **Security Note:** 
+> * Secret configuration values (such as those from AWS Secrets Manager or SSM SecureString) are **automatically filtered out** from all REST endpoints for security purposes.
+> * Be sure to secure these endpoints appropriately in your application (e.g., with authentication, authorization, or network restrictions) to prevent unauthorized outside access to your configuration data.
+
+### Securing the Endpoint
+
+Otto Config does not ship any authentication for the REST API — since `ConfigurationEndpoint` is a library-provided class, you can't annotate it directly, so the endpoint should be secured at the routing/web-server layer using path-based rules instead. Below are examples for both frameworks.
+
+#### Spring
+
+Add `spring-boot-starter-security` to your project and restrict the `/configs/**` paths with a dedicated `SecurityFilterChain`:
+
+```java
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+
+import static org.springframework.security.config.Customizer.withDefaults;
+
+@Configuration
+public class ConfigEndpointSecurityConfig {
+
+    @Bean
+    public SecurityFilterChain configEndpointSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.securityMatcher("/configs/**", "/*/configs/**")
+            .authorizeHttpRequests(auth -> auth.anyRequest().hasRole("CONFIG_READER"))
+            .httpBasic(withDefaults()); // swap for oauth2ResourceServer(...) to validate a JWT instead
+        return http.build();
+    }
+}
+```
+
+Grant the `CONFIG_READER` role to a basic-auth user in `application.properties`, or swap `httpBasic(...)` for `oauth2ResourceServer(...)` if you're already authenticating other endpoints with OAuth2/JWT.
+
+#### Helidon
+
+Add `helidon-security` together with a provider (e.g. `helidon-security-providers-http-auth` for basic auth, or `helidon-security-providers-jwt` for JWT) as dependencies, then constrain the `/configs` paths via config — Helidon's web server security integration applies these rules to matching paths regardless of which class serves them:
+
+```properties
+security.providers.0.http-basic-auth.realm=otto-config
+security.providers.0.http-basic-auth.users.0.login=config-reader
+security.providers.0.http-basic-auth.users.0.password=${CONFIG_READER_PASSWORD}
+security.providers.0.http-basic-auth.users.0.roles.0=config-reader
+
+security.web-server.paths.0.path=/configs
+security.web-server.paths.0.path-suffix=/*
+security.web-server.paths.0.methods.0=GET
+security.web-server.paths.0.authenticate=true
+security.web-server.paths.0.roles-allowed.0=config-reader
+```
+
+Adjust the `path`/`path-suffix` pair (or add a second entry) to also cover the `/{app}/configs` variants if you expose additional apps via `otto.config.endpoint.configs.apps`.
 
 ## Adding Custom Sources
 

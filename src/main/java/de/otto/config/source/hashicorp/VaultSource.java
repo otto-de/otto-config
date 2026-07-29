@@ -24,6 +24,11 @@ public class VaultSource extends PropertySource {
     private final int previousVersions;
 
     @Override
+    public boolean hasSecrets() {
+        return true;
+    }
+
+    @Override
     public Properties load() throws SourceException {
         try {
             VaultResponse response = this.vaultClient.read(this.secretPath);

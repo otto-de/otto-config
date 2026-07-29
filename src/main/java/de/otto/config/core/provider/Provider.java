@@ -3,6 +3,7 @@ package de.otto.config.core.provider;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import de.otto.config.core.Configuration;
 import de.otto.config.core.ConfigurationCache;
@@ -56,17 +57,26 @@ public abstract class Provider<T> implements Refreshable {
         this.refresh();
     }
 
+    @SuppressWarnings("null")
+    public Map<String, Object> asMap() {
+        return this.configuration.getProperties().entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+    
     @Override
     public void refresh() {
         this.configuration.setProperties(SourceAggregator.aggregate(this.context.getSourceRegistry().filterByType(this.filterTypes), 
                                          this.valueTransformer, 
-                                         this.normalizeKeys));
+                                         this.normalizeKeys,
+                                         true,
+                                         this.context.getExcludeSecrets()));
     }
 
     public void refreshInPlace() {
         this.configuration.setProperties(SourceAggregator.aggregate(this.context.getSourceRegistry().filterByType(this.filterTypes), 
                                          this.valueTransformer, 
                                          this.normalizeKeys,
-                                         false));
+                                         false,
+                                         this.context.getExcludeSecrets()));
     }
 }

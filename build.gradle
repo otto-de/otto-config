@@ -17,7 +17,7 @@ apply from: 'gradle/repositories.gradle'
 //
 // DO NOT FORGET TO DOCUMENT CHANGES IN CHANGELOG.md (create if needed)
 //
-def otto_config_version = "0.1.9"  // <--- SET AND UPDATE VERSION HERE
+def otto_config_version = "0.1.10"  // <--- SET AND UPDATE VERSION HERE
 
 group = 'de.otto.config'
 version = otto_config_version
@@ -38,10 +38,12 @@ dependencies {
     // Spring dependencies as compileOnly
     compileOnly "org.springframework:spring-context:${springContextVersion}"
     compileOnly "org.springframework.boot:spring-boot-autoconfigure:${springBootVersion}"
+    compileOnly "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
 
     // Helidon dependencies as compileOnly
     compileOnly "io.helidon.microprofile.scheduling:helidon-microprofile-scheduling:${helidonVersion}"
     compileOnly "io.helidon.config:helidon-config:${helidonVersion}"
+    compileOnly "io.helidon.microprofile.bundles:helidon-microprofile:${helidonVersion}"
 
     // Add Spring Boot testing starter
     testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"

@@ -24,6 +24,7 @@ public interface Configuration<T> {
         return getProperties().getOrDefault(key, defaultValue);
     }
 
+    @SuppressWarnings("null")
     default <S> List<S> getValues(String key, Class<S> type) {
         String value = getValueAsString(key);
         if (value == null || value.isEmpty()) {

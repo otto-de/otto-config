@@ -20,6 +20,7 @@ A Java library for dynamic, centralized configuration management using AWS AppCo
 - **Auto Refresh** — Configuration updates every 5 minutes by default, no restarts required; optional event-driven refresh available for immediate updates (see [AWS Setup Guide](docs/AWS_SETUP.md#event-driven-refresh))
 - **Unified API** — Access properties and toggles from multiple sources through one interface
 - **Framework Integration** — Auto-registers with Spring Boot and Helidon; works with plain Java and Clojure too
+- **REST API:** Exposes a REST API for accessing configuration values, enabling non-Java apps (such as frontend applications) to consume centralized configuration without direct Otto Config integration
 - **Multiple Sources** — AWS AppConfig, Secrets Manager, Parameter Store, Hashicorp Vault, and local files
 - **Type Safe** — Built-in support for String, Boolean, and Integer types
 
@@ -30,7 +31,7 @@ A Java library for dynamic, centralized configuration management using AWS AppCo
 **Gradle:**
 ```groovy
 dependencies {
-    implementation "de.otto.config:otto-config:0.1.8"
+    implementation "de.otto.config:otto-config:0.1.10"
 }
 ```
 
@@ -39,7 +40,7 @@ dependencies {
 <dependency>
     <groupId>de.otto.config</groupId>
     <artifactId>otto-config</artifactId>
-    <version>0.1.8</version>
+    <version>0.1.10</version>
 </dependency>
 ```
 
@@ -136,12 +137,12 @@ Use Java interop to access Otto Config:
 
 **Add dependency (deps.edn):**
 ```clojure
-{:deps {de.otto.config/otto-config {:mvn/version "0.1.8"}}}
+{:deps {de.otto.config/otto-config {:mvn/version "0.1.10"}}}
 ```
 
 **Or with Leiningen (project.clj):**
 ```clojure
-:dependencies [[de.otto.config/otto-config "0.1.8"]]
+:dependencies [[de.otto.config/otto-config "0.1.10"]]
 ```
 
 **Usage:**

@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @UtilityClass
 public class SourceDiscovery {
 
+    @SuppressWarnings("null")
     public static List<Source<? extends Configuration<?>>> discover(Context context) {
         ServiceLoader<SourceFactory> loader = ServiceLoader.load(SourceFactory.class);
         Set<String> enabledSources = getEnabledSources(context);
@@ -67,6 +68,7 @@ public class SourceDiscovery {
                enabledSource.equals(annotation.value());
     }
 
+    @SuppressWarnings("null")
     private static Set<String> getEnabledSources(Context context) {
         String enabledSourcesConfig = context.getConfiguration().getValue("otto.config.sources.enabled", "");
 

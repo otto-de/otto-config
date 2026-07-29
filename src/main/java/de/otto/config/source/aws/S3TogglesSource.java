@@ -53,6 +53,7 @@ public class S3TogglesSource extends Source<Toggles> {
         return Toggles.empty;
     }
 
+    @SuppressWarnings("null")
     @Override
     public Toggles load() throws SourceException {
         try {
@@ -70,6 +71,7 @@ public class S3TogglesSource extends Source<Toggles> {
         }
     }
 
+    @SuppressWarnings("null")
     private Stream<String> fetchToggleKeys() {
         return this.s3Client.listObjectsV2Paginator(
                         ListObjectsV2Request.builder()

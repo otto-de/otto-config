@@ -14,6 +14,10 @@ public abstract class Source<T extends Configuration<?>> implements Refreshable 
     public abstract T load() throws SourceException;
     public abstract T getEmptyValue();
 
+    public boolean hasSecrets() {
+        return false;
+    }
+
     public T getOrLoad() {
         return getOrLoad(isPullRefreshEnabled());
     }

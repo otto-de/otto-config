@@ -7,6 +7,7 @@ import lombok.Builder;
 @Builder
 public class PropertyRegistry extends MapRegistry<String, Property<?>> implements Refreshable {
 
+    @SuppressWarnings("null")
     @Override
     public void refresh() {
         this.values.values().stream()
@@ -15,6 +16,7 @@ public class PropertyRegistry extends MapRegistry<String, Property<?>> implement
                 .forEach(Refreshable::refresh);
     }
 
+    @SuppressWarnings("null")
     @Override
     public void refreshInPlace() {
         this.values.values().stream()

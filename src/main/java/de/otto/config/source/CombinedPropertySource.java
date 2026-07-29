@@ -26,6 +26,12 @@ public class CombinedPropertySource extends PropertySource {
         return false;
     }
 
+    @SuppressWarnings("null")
+    @Override
+    public boolean hasSecrets() {
+        return sources.stream().anyMatch(PropertySource::hasSecrets);
+    }
+
     @Override
     public Properties load() throws SourceException {
         Map<String, String> combined = new HashMap<>();
