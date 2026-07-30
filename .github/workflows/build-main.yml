@@ -43,10 +43,10 @@ jobs:
             build/reports/**
 
   e2e:
-    name: E2E (Spring / Helidon / Java demos)
+    name: E2E (Spring / Helidon / Java / Go demos)
     runs-on: ubuntu-latest
     # Docker is preinstalled on ubuntu-latest runners.
-    needs: build
+    needs: [build, go]
 
     steps:
       - name: Checkout code
@@ -58,6 +58,12 @@ jobs:
           distribution: 'temurin'
           java-version: 21
           cache: gradle
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go/go.mod
+          cache-dependency-path: go/go.sum
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -86,3 +92,38 @@ jobs:
           path: |
             e2e/build/test-results/**/*.xml
             e2e/build/reports/**
+
+  go:
+    name: Go module (build/vet/test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: go
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go/go.mod
+          cache-dependency-path: go/go.sum
+
+      - name: Verify gofmt formatting
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [ -n "$unformatted" ]; then
+            echo "The following files are not gofmt-formatted:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: Build
+        run: go build ./...
+
+      - name: Test
+        run: go test ./... -v

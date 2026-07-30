@@ -9,6 +9,7 @@ This guide provides detailed instructions for configuring Otto Config with AWS s
 - [Hashicorp Vault](#hashicorp-vault)
 - [AWS S3 (Feature Toggles)](#aws-s3-feature-toggles)
 - [Event-Driven Refresh](#event-driven-refresh)
+- [Testing the Go Examples Against Real AWS](#testing-the-go-examples-against-real-aws)
 
 ## AWS AppConfig
 
@@ -376,6 +377,15 @@ otto.config.aws.change.notifications.enabled=true
 otto.config.aws.change.notifications.queue.url=https://sqs.us-east-1.amazonaws.com/123456789012/otto-config-changes
 ```
 
+**Go:** the same properties apply, plus starting a listener explicitly:
+
+```go
+import "github.com/otto-de/otto-config/go/event"
+
+listener := event.NewSQSListener(ctx, queueURL)
+go listener.Start(context.Background())
+```
+
 ### Required IAM Permissions
 
 ```yaml
@@ -388,6 +398,24 @@ Statement:
       - sqs:GetQueueAttributes
     Resource: "arn:aws:sqs:*:*:otto-config-changes"
 ```
+
+## Testing the Go Examples Against Real AWS
+
+The Go examples under [`go/examples`](../go/examples) default to the local
+moto/Vault docker-compose stack via `demo/local/.env`. To test against a
+real account instead, don't source that file (so `AWS_ENDPOINT_URL` stays
+unset), make sure real credentials are resolvable (`AWS_PROFILE`, static env
+vars, or an instance/task role), and run e.g.:
+
+```bash
+cd go
+AWS_REGION=eu-central-1 AWS_PROFILE=my-real-profile go run ./examples/plain
+```
+
+No code changes are needed — the AWS sources use the SDK's standard
+`config.LoadDefaultConfig()` chain. Point the example's seed properties
+(secret ARN, SSM path prefix, S3 bucket/folder) at resources provisioned per
+the sections above.
 
 ### Benefits
 

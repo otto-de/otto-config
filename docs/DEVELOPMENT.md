@@ -2,6 +2,11 @@
 
 This guide provides detailed instructions for setting up your development environment to work on Otto Config.
 
+This repository contains two independent implementations of otto-config: the **Java** library
+(root Gradle project + `demo/java`, `demo/spring`, `demo/helidon`) and the **Go** module (`go/`,
+with its own `go/examples`). This guide covers Java first; see
+[Go Development](#go-development) below for the Go-specific workflow.
+
 ## Prerequisites
 
 - **Java 21** or later
@@ -123,6 +128,51 @@ This script:
 
 ```bash
 ./demo/ci/stop_vault.sh
+```
+
+## Go Development
+
+The Go module lives entirely in [go/](../go/) with its own `go.mod`. See the [Go section](../README.md#go)
+of the main README for full Go usage documentation; this section covers the build/test workflow only.
+
+### Prerequisites
+
+- **Go 1.24+** (the module pins `toolchain go1.24.6` in `go.mod`; the `go` command downloads it
+  automatically if your installed version is older)
+
+### Build & Test
+
+```bash
+cd go
+
+go build ./...
+go vet ./...
+gofmt -l .      # should print nothing; run `gofmt -w .` to fix
+go test ./...
+```
+
+### Running Go Demos & Examples
+
+```bash
+# Simplest possible usage: local embedded file, no AWS/network
+go run ./examples/quickstart
+
+# Plain net/http demo server
+go run ./examples/plain
+
+# Gin demo server with the REST configuration endpoint
+go run ./examples/gin
+```
+
+`examples/direct` and `examples/gin` exercise the full AWS/Vault source stack and expect the
+`demo/local` docker-compose stack (moto + Vault + AppConfigData stub) to be running, the same as
+the Java `moto` profile (run from the repository root, then return to `go/` to run the example):
+
+```bash
+cd ../demo/local && docker compose up -d
+until [ -f .env ]; do sleep 1; done
+source ./.env && cd ../../go
+go run ./examples/direct
 ```
 
 ## VS Code Development Setup

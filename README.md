@@ -2,14 +2,16 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Java Version](https://img.shields.io/badge/Java-21+-orange.svg)](https://openjdk.java.net/)
+[![Go Version](https://img.shields.io/badge/Go-1.24+-00ADD8.svg)](https://go.dev/)
 ![OSS Lifecycle](https://img.shields.io/osslifecycle?file_url=https%3A%2F%2Fgithub.com%2Fotto-de%2Fotto-config%2Fblob%2Fmain%2FOSSMETADATA)
 
-A Java library for dynamic, centralized configuration management using AWS AppConfig, Secrets Manager, Parameter Store, and Hashicorp Vault. Otto Config lets you update feature toggles and application properties across distributed services without redeploying code.
+A library for dynamic, centralized configuration management using AWS AppConfig, Secrets Manager, Parameter Store, and Hashicorp Vault. Otto Config lets you update feature toggles and application properties across distributed services without redeploying code. Available for both **Java** and **Go**.
 
 ## Table of Contents
 - [Features](#features)
 - [Quick Start](#quick-start)
 - [Framework Integration](#framework-integration)
+- [Go](#go)
 - [Configuration Sources](#configuration-sources)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
@@ -31,7 +33,7 @@ A Java library for dynamic, centralized configuration management using AWS AppCo
 **Gradle:**
 ```groovy
 dependencies {
-    implementation "de.otto.config:otto-config:0.1.10"
+    implementation "de.otto.config:otto-config:0.1.11"
 }
 ```
 
@@ -40,7 +42,7 @@ dependencies {
 <dependency>
     <groupId>de.otto.config</groupId>
     <artifactId>otto-config</artifactId>
-    <version>0.1.10</version>
+    <version>0.1.11</version>
 </dependency>
 ```
 
@@ -137,12 +139,12 @@ Use Java interop to access Otto Config:
 
 **Add dependency (deps.edn):**
 ```clojure
-{:deps {de.otto.config/otto-config {:mvn/version "0.1.10"}}}
+{:deps {de.otto.config/otto-config {:mvn/version "0.1.11"}}}
 ```
 
 **Or with Leiningen (project.clj):**
 ```clojure
-:dependencies [[de.otto.config/otto-config "0.1.10"]]
+:dependencies [[de.otto.config/otto-config "0.1.11"]]
 ```
 
 **Usage:**
@@ -169,6 +171,115 @@ Use Java interop to access Otto Config:
 (defn search-enabled? []
   (.getValueAsBoolean config-provider "feature.search.enabled" false))
 ```
+
+## Go
+
+Otto Config is also available as a native Go module at [`go/`](go/), with full feature parity: the
+same six configuration sources, event-driven refresh, and a REST endpoint -- plus idiomatic Go
+additions like struct-tag binding.
+
+> The module lives in the `go/` subdirectory of this repository, so its releases are tagged
+> `go/vX.Y.Z` rather than a bare `vX.Y.Z` (see [PUBLISHING.md](PUBLISHING.md#go-module) for why).
+
+### Add the dependency
+
+```bash
+go get github.com/otto-de/otto-config/go@v0.1.11
+```
+
+### Read configuration directly (no HTTP/gin required)
+
+```go
+import (
+	ottoconfig "github.com/otto-de/otto-config/go"
+	_ "github.com/otto-de/otto-config/go/source/appconfig"
+	_ "github.com/otto-de/otto-config/go/source/secretsmanager"
+	_ "github.com/otto-de/otto-config/go/source/ssm"
+)
+
+func main() {
+	ctx, err := ottoconfig.NewContext("my-application")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	provider := ottoconfig.NewConfigurationProvider(ctx)
+
+	databaseURL := provider.GetValueOr("database.url", "jdbc:h2:mem:testdb")
+	searchEnabled := ottoconfig.GetValueAsBool[string](provider, "feature.search.enabled", false)
+
+	// Use configuration...
+}
+```
+
+Sources are enabled via the same `otto.config.sources.enabled` convention as Java, either through
+environment variables (`OTTO_CONFIG_SOURCES_ENABLED=aws.appconfig.properties,aws.secrets,aws.ssm`) or a
+local `properties.json` file for development.
+
+### Bind values onto a struct
+
+```go
+type AppConfig struct {
+	DatabaseURL   string `config:"database.url,default=jdbc:h2:mem:testdb"`
+	SearchEnabled bool   `config:"feature.search.enabled,default=false"`
+}
+
+var cfg AppConfig
+if _, err := bind.Register(ctx, "app-config", &cfg); err != nil {
+	log.Fatal(err)
+}
+// cfg fields are re-populated automatically on every refresh.
+```
+
+### Keep configuration fresh in the background
+
+```go
+import "github.com/otto-de/otto-config/go/scheduler"
+
+sched := scheduler.StartDefault(ctx) // full refresh every 5m, poll every 10s
+defer sched.Stop()
+```
+
+### REST endpoint (plain net/http or gin)
+
+```go
+handler, err := endpoint.NewHandler(ctx)
+if err != nil {
+	log.Fatal(err)
+}
+http.Handle("/", handler.Mux()) // GET /configs, /configs/{key}, /{app}/configs, /{app}/configs/{key}
+```
+
+```go
+router := gin.Default()
+ginconfig.RegisterRoutes(router, ctx)
+```
+
+Secret-backed properties (Secrets Manager, Vault, SSM `SecureString`) are always excluded from
+endpoint responses, the same as in Java.
+
+### Go package layout
+
+| Source | Package |
+|--------|---------|
+| **AWS AppConfig** | [`go/source/appconfig`](go/source/appconfig) |
+| **AWS Secrets Manager** | [`go/source/secretsmanager`](go/source/secretsmanager) |
+| **AWS Parameter Store (SSM)** | [`go/source/ssm`](go/source/ssm) |
+| **Hashicorp Vault** | [`go/source/vault`](go/source/vault) |
+| **AWS S3 (Toggles)** | [`go/source/s3toggles`](go/source/s3toggles) |
+| **Local Files** | [`go/source/file`](go/source/file) |
+
+Blank-import the packages for the sources you want auto-registered
+(`_ "github.com/otto-de/otto-config/go/source/appconfig"`), then list them in
+`otto.config.sources.enabled` as usual. Infrastructure requirements (IAM permissions, Terraform)
+are identical to Java -- see the [AWS Setup Guide](docs/AWS_SETUP.md).
+
+For the Go build/test workflow (running `go build`, `go vet`, `gofmt`, `go test`), see
+[Go Development](docs/DEVELOPMENT.md#go-development) in the Development Guide.
+
+See **[go/examples](go/examples)** for complete, runnable programs: a zero-dependency
+`quickstart`, a full AWS/Vault-backed `direct` example, and the `plain` net/http and `gin`
+REST-endpoint demo servers.
 
 ## Configuration Sources
 
@@ -249,9 +360,9 @@ For detailed AWS setup instructions, IAM permissions, and Terraform examples, se
 
 - **[AWS Setup Guide](docs/AWS_SETUP.md)** — Detailed AWS configuration for AppConfig, Secrets Manager, Parameter Store, and Vault
 - **[Advanced Topics](docs/ADVANCED.md)** — Architecture diagrams, custom sources, custom providers, priority order
-- **[Development Guide](docs/DEVELOPMENT.md)** — Local development setup, VS Code configuration, testing
+- **[Development Guide](docs/DEVELOPMENT.md)** — Local development setup, VS Code configuration, testing (Java and [Go](docs/DEVELOPMENT.md#go-development))
 - **[Contributing](CONTRIBUTING.md)** — How to contribute to the project
-- **[Publishing](PUBLISHING.md)** — Release and publishing process (JReleaser → Maven Central + GitHub Packages)
+- **[Publishing](PUBLISHING.md)** — Release and publishing process (JReleaser → Maven Central + GitHub Packages; Go module tagging)
 - **[Changelog](CHANGELOG.md)** — Release notes per version
 
 ## Examples
@@ -260,6 +371,12 @@ Complete working examples are available in the `demo/` directory:
 - **[demo/java](demo/java)** — Plain Java application
 - **[demo/spring](demo/spring)** — Spring Boot application
 - **[demo/helidon](demo/helidon)** — Helidon application
+
+Go examples and demos are available in [go/examples](go/examples):
+- **[go/examples/quickstart](go/examples/quickstart)** — Simplest possible usage: a local embedded file, no AWS/network
+- **[go/examples/direct](go/examples/direct)** — Reading config directly in a long-running app, no HTTP/gin
+- **[go/examples/plain](go/examples/plain)** — Plain `net/http` demo server
+- **[go/examples/gin](go/examples/gin)** — Gin demo server with the REST configuration endpoint
 
 Run examples locally (from the repo root — the Gradle wrapper only exists there):
 ```bash
@@ -278,9 +395,15 @@ corporate Vault, use the local docker-compose stack (moto + Vault +
 AppConfigData stub) documented in **[demo/local/README.md](demo/local/README.md)**:
 
 ```bash
-cd demo/local && docker compose up -d && source ./.env && cd ../..
+cd demo/local && docker compose up -d
+until [ -f .env ]; do sleep 1; done
+source ./.env && cd ../..
 ./gradlew :demo:spring:bootRun --args='--spring.profiles.active=moto'
 ```
+
+To instead run the Go examples against a **real** AWS account (no code
+changes needed — the AWS sources use the standard SDK credential chain), see
+[Testing the Go Examples Against Real AWS](docs/AWS_SETUP.md#testing-the-go-examples-against-real-aws).
 
 ## Contributing
 

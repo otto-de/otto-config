@@ -123,6 +123,12 @@ services:
     # can be written on Linux runners where the mount preserves host UIDs
     # and the default `vault` user has no write access.
     user: "0:0"
+    # IPC_LOCK is required to even exec /bin/vault: the image's binary has
+    # cap_ipc_lock set via file capabilities, and execve() rejects that
+    # (EPERM, "Operation not permitted") if the container's capability
+    # bounding set doesn't include it -- root alone isn't enough.
+    cap_add:
+      - IPC_LOCK
     environment:
       VAULT_ADDR: http://vault:8200
       VAULT_TOKEN: myroot

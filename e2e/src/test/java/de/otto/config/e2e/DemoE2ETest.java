@@ -29,8 +29,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 /**
- * End-to-end tests for all three otto-config demos (Spring, Helidon, plain
- * Java).
+ * End-to-end tests for all four otto-config demos (Spring, Helidon, plain
+ * Java, and plain Go).
  *
  * The docker-compose stack under {@code demo/local/} (moto + vault +
  * appconfigdata-stub) is started once per test class. Each {@code @Test}
@@ -126,6 +126,22 @@ class DemoE2ETest {
 
         List<String> cmd = List.of(launcher.toAbsolutePath().toString());
         runAgainstDemo("java", cmd, env, port);
+    }
+
+    @Test
+    void goDemoConfigEndpointReturnsSeededValues() throws Exception {
+        Path binary = Paths.get(requireSystemProperty("e2e.go.binary"));
+        if (!Files.isExecutable(binary)) {
+            throw new IllegalStateException("Go demo binary not found or not executable at " + binary);
+        }
+        int port = pickFreePort();
+
+        Map<String, String> env = new LinkedHashMap<>(envFromFile);
+        env.put("SERVER_PORT", Integer.toString(port));
+        env.put("OTTO_CONFIG_PROFILE", "moto");
+
+        List<String> cmd = List.of(binary.toAbsolutePath().toString());
+        runAgainstDemo("go", cmd, env, port);
     }
 
     // ------------------------------------------------------------------

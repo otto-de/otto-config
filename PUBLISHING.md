@@ -135,6 +135,32 @@ If artifacts were published to Maven Central: you cannot overwrite them. Bump th
 
 The failed run's `build/jreleaser/trace.log` is uploaded as a workflow artifact for debugging.
 
+## Go Module
+
+The Go module in [go/](go/) is released as part of the exact same `release.yml` workflow and version
+number as the Java library — there's no separate Go release process to trigger.
+
+Go modules aren't published to Maven Central or GitHub Packages; neither concept exists for Go.
+Instead, a Go module is "published" simply by pushing a semver git tag, which consumers then fetch
+directly from GitHub via `go get` (transparently mirrored and checksummed by `proxy.golang.org` /
+`sum.golang.org` — no credentials or manual upload step needed).
+
+Because the Go module lives in the `go/` subdirectory rather than the repository root, Go's
+multi-module-repo convention (see [go.dev/ref/mod#vcs-version](https://go.dev/ref/mod#vcs-version))
+requires its version tags to be prefixed with the subdirectory path: `go/vX.Y.Z`, rather than the bare
+`vX.Y.Z` tag JReleaser creates for the Java release. The release workflow handles this automatically:
+after `jreleaserFullRelease` creates the `vX.Y.Z` tag, a follow-up step tags the *same commit* as
+`go/vX.Y.Z` and pushes it.
+
+After a release, consumers can immediately run:
+
+```bash
+go get github.com/otto-de/otto-config/go@v0.2.0
+```
+
+(It may take a few minutes for a brand-new tag to be indexed by `proxy.golang.org`; `go get` falls
+back to fetching directly from GitHub in the meantime.)
+
 ## Consuming the Published Artifact
 
 ### From Maven Central
@@ -159,8 +185,19 @@ repositories {
 dependencies { implementation 'de.otto.config:otto-config:0.2.0' }
 ```
 
+### From `go get` (Go module)
+
+```bash
+go get github.com/otto-de/otto-config/go@v0.2.0
+```
+
+```go
+import ottoconfig "github.com/otto-de/otto-config/go"
+```
+
 ## References
 
 - [JReleaser documentation](https://jreleaser.org/guide/latest/)
 - [Maven Central Portal](https://central.sonatype.com/)
+- [Go modules reference](https://go.dev/ref/mod) — versioning rules for modules in repository subdirectories
 - [edison-microservice release setup](https://github.com/otto-de/edison-microservice) — the reference implementation this project follows

@@ -243,6 +243,58 @@ security.web-server.paths.0.roles-allowed.0=config-reader
 
 Adjust the `path`/`path-suffix` pair (or add a second entry) to also cover the `/{app}/configs` variants if you expose additional apps via `otto.config.endpoint.configs.apps`.
 
+#### Go (plain net/http)
+
+`endpoint.Handler.Mux()` returns a plain `*http.ServeMux`; wrap it with your own middleware before mounting it, the same way you would secure any other route:
+
+```go
+import (
+	"net/http"
+
+	"github.com/otto-de/otto-config/go/endpoint"
+)
+
+func requireConfigReader(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user, pass, ok := r.BasicAuth()
+		if !ok || user != "config-reader" || pass != os.Getenv("CONFIG_READER_PASSWORD") {
+			w.Header().Set("WWW-Authenticate", `Basic realm="otto-config"`)
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+handler, err := endpoint.NewHandler(ctx)
+if err != nil {
+	log.Fatal(err)
+}
+http.Handle("/", requireConfigReader(handler.Mux()))
+```
+
+Swap the basic-auth check for JWT validation, an API key header, or an mTLS peer-certificate check as needed.
+
+#### Go (gin)
+
+`ginconfig.RegisterRoutes` accepts any `gin.IRoutes`, so pass a `router.Group` with your auth middleware attached instead of the top-level engine:
+
+```go
+import (
+	"github.com/gin-gonic/gin"
+
+	ginconfig "github.com/otto-de/otto-config/go/integration/gin"
+)
+
+router := gin.Default()
+secured := router.Group("/", gin.BasicAuth(gin.Accounts{
+	"config-reader": os.Getenv("CONFIG_READER_PASSWORD"),
+}))
+if _, err := ginconfig.RegisterRoutes(secured, ctx); err != nil {
+	log.Fatal(err)
+}
+```
+
 ## Adding Custom Sources
 
 Otto Config can be extended to support additional configuration sources beyond those provided out of the box. This section describes how to implement and register a custom source—such as one backed by DynamoDB—so that its configuration data is seamlessly integrated into Otto Config's unified configuration system.
@@ -373,6 +425,81 @@ configurationProvider.addSource(dynamoDbSource);
 
 With either approach, Otto Config will merge your custom source's data into the unified configuration, making it available alongside all other sources.
 
+### Go
+
+Go has no SPI/annotation-processing equivalent, so both "static" and "dynamic" registration use the same `RegisterSourceFactory` function -- the difference is only *when* you call it.
+
+#### 1. Implement your custom Source
+
+Embed `*ottoconfig.CachedSource` (which supplies caching, `Load`, `Empty`, and sensible `HasSecrets`/`OnChanged`/`PullRefreshEnabled` defaults) and provide a `Kind()`:
+
+```go
+package dynamodbsource
+
+import (
+	ottoconfig "github.com/otto-de/otto-config/go"
+	"github.com/otto-de/otto-config/go/domain"
+)
+
+type Source struct {
+	*ottoconfig.CachedSource
+
+	client    *dynamodb.Client
+	tableName string
+}
+
+var _ ottoconfig.Source = (*Source)(nil)
+
+func New(client *dynamodb.Client, tableName string) *Source {
+	s := &Source{client: client, tableName: tableName}
+	s.CachedSource = ottoconfig.NewCachedSource(s.load, func() ottoconfig.RawConfig { return domain.EmptyProperties() })
+	return s
+}
+
+func (s *Source) Kind() string { return domain.PropertiesKind }
+
+func (s *Source) load() (ottoconfig.RawConfig, error) {
+	properties := map[string]string{}
+	// ... scan/query s.tableName via s.client and populate properties ...
+	return domain.NewProperties(properties), nil
+}
+```
+
+#### 2a. Static registration (auto-discovered via `otto.config.sources.enabled`)
+
+Register a factory from the package's `init()` function -- consumers then just blank-import the package:
+
+```go
+func init() {
+	ottoconfig.RegisterSourceFactory("aws.dynamodb", func(ctx *ottoconfig.Context) (ottoconfig.Source, error) {
+		client := ottoconfig.GetOrRegisterClient(ctx.ClientRegistry(), func() *dynamodb.Client {
+			return dynamodb.NewFromConfig(awsCfg)
+		})
+		tableName := ctx.Configuration().GetValueOr("otto.config.aws.dynamodb.table.name", "config")
+		return New(client, tableName), nil
+	})
+}
+```
+
+```go
+import (
+	_ "com.mycompany/dynamodbsource"
+)
+
+// otto.config.sources.enabled=aws.appconfig.properties,aws.appconfig.toggles,aws.secrets,aws.ssm,aws.dynamodb
+```
+
+#### 2b. Dynamic registration (at runtime)
+
+If the source needs runtime-only parameters, skip `RegisterSourceFactory`/`init()` entirely and register the instance directly with a `Provider`:
+
+```go
+provider := ottoconfig.NewConfigurationProvider(ctx)
+provider.AddSource(dynamodbsource.New(client, "my-table"))
+```
+
+`AddSource` registers the source with the `Context`'s `SourceRegistry` and immediately triggers a refresh, so the new data is merged into the unified configuration right away.
+
 ## Implementing a Custom Provider
 
 In some cases, you may want to implement your own `Provider<T>` to handle custom data types or specialized configuration needs within your application or service. For instance, you might need to load configuration for internal analytics, auditing, or integration with external systems.
@@ -486,3 +613,36 @@ MyCustomType value = myCustomProvider.getValue("exampleKey");
 ```
 
 This approach allows you to seamlessly access your custom configuration data throughout your application using your custom provider.
+
+### Go
+
+`Provider[T]` is already generic, so there's no subclassing step -- constructing one *is* implementing a custom provider. Supply the `RawConfig` kinds to aggregate and a transformer from `any` to your type:
+
+```go
+package myprovider
+
+import (
+	ottoconfig "github.com/otto-de/otto-config/go"
+)
+
+type MyCustomType struct {
+	// ...
+}
+
+func NewMyCustomProvider(ctx *ottoconfig.Context) *ottoconfig.Provider[MyCustomType] {
+	return ottoconfig.NewProvider[MyCustomType](
+		ctx,
+		nil,                       // sources already registered elsewhere; pass some here to register them too
+		[]string{"my-custom-kind"}, // RawConfig.Kind() values to aggregate
+		func(v any) MyCustomType { return v.(MyCustomType) },
+		false, // normalizeKeys
+	)
+}
+```
+
+```go
+provider := myprovider.NewMyCustomProvider(ctx)
+value := provider.GetValueOr("exampleKey", MyCustomType{})
+```
+
+`NewProvider` registers itself with `ctx.ProviderRegistry()` and performs an initial `Refresh()`, exactly like `NewConfigurationProvider` (which is itself just `NewProvider[string]` with `properties`/`toggles` kinds and a `fmt.Sprint` transformer).

@@ -23,14 +23,27 @@ dependencies {
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
 
-// The E2E test launches each demo (spring/helidon/java) as a subprocess.
+// The E2E test launches each demo (spring/helidon/java/go) as a subprocess.
 // Real env vars are required by the AWS SDK for endpoint URL overrides,
 // which System.setProperty cannot fake. Build the artifacts and expose
 // their paths via system properties.
+
+def goModuleDir = rootProject.file('go')
+def goDemoBinary = layout.buildDirectory.file('go-demo/plain-demo').get().asFile
+
+tasks.register('buildGoPlainDemo', Exec) {
+    inputs.dir(goModuleDir)
+    outputs.file(goDemoBinary)
+    workingDir goModuleDir
+    doFirst { goDemoBinary.parentFile.mkdirs() }
+    commandLine 'go', 'build', '-o', goDemoBinary.absolutePath, './examples/plain'
+}
+
 tasks.named('test') {
     dependsOn(':demo:spring:bootJar')
     dependsOn(':demo:helidon:installDist')
     dependsOn(':demo:java:installDist')
+    dependsOn('buildGoPlainDemo')
     doFirst {
         def bootJar = project(':demo:spring').tasks.named('bootJar').get().archiveFile.get().asFile
         systemProperty 'e2e.spring.jar', bootJar.absolutePath
@@ -42,6 +55,8 @@ tasks.named('test') {
         def javaInstall = project(':demo:java').layout.buildDirectory
                 .dir('install/' + project(':demo:java').name).get().asFile
         systemProperty 'e2e.java.install.dir', javaInstall.absolutePath
+
+        systemProperty 'e2e.go.binary', goDemoBinary.absolutePath
     }
 }
 

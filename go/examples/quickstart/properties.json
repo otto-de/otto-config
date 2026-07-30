@@ -1,0 +1,9 @@
+{
+  "properties": {
+    "myKey": "hello world",
+    "otherKey": "42"
+  },
+  "toggles": {
+    "myFeature": { "enabled": true }
+  }
+}

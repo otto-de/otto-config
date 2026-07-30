@@ -128,6 +128,29 @@ jobs:
           JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.MAVENCENTRAL_USERNAME }}
           JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.MAVENCENTRAL_PASSWORD }}
 
+      # Go modules aren't published to Maven Central or GitHub Packages --
+      # there is no such registry for Go. A Go module is "published" simply
+      # by pushing a semver git tag, which consumers then fetch directly
+      # from GitHub via `go get` (transparently mirrored by proxy.golang.org
+      # / sum.golang.org). Because the Go module lives in the `go/`
+      # subdirectory, Go's multi-module-repo convention requires the tag to
+      # be prefixed with the subdirectory path, e.g. `go/v0.2.0` -- see
+      # https://go.dev/ref/mod#vcs-version. We reuse the exact same version
+      # number as the main Java release so both artifacts always move
+      # together under one release process.
+      - name: Tag Go module for this release
+        run: |
+          VERSION="${{ inputs.version }}"
+          GO_TAG="go/v${VERSION}"
+          git fetch --tags
+          if git rev-parse "$GO_TAG" >/dev/null 2>&1; then
+            echo "Tag $GO_TAG already exists, skipping."
+          else
+            git tag "$GO_TAG" "v${VERSION}"
+            git push origin "$GO_TAG"
+            echo "Pushed $GO_TAG -- consumers can now run: go get github.com/otto-de/otto-config/go@v${VERSION}"
+          fi
+
       - name: Upload JReleaser output on failure
         if: failure()
         uses: actions/upload-artifact@v4
