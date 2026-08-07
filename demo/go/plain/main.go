@@ -11,7 +11,7 @@
 //
 // Port is taken from the SERVER_PORT env var (default 8080). Run it with:
 //
-//	go run ./examples/plain
+//	go run ./plain
 package main
 
 import (

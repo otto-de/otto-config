@@ -6,17 +6,17 @@
 // needs to feed values into your own application logic.
 //
 // Configuration points at the demo/local docker-compose stack (moto + vault
-// + appconfigdata-stub), the same as go/examples/gin. Start it first (from
+// + appconfigdata-stub), the same as demo/go/gin. Start it first (from
 // the repository root); vault-init needs a few seconds to write .env, so
 // wait for it rather than sourcing immediately:
 //
 //	cd demo/local && docker compose up -d
 //	until [ -f .env ]; do sleep 1; done
-//	source ./.env && cd ../../go
+//	source ./.env && cd ../go
 //
 // Then run:
 //
-//	go run ./examples/direct
+//	go run ./direct
 package main
 
 import (

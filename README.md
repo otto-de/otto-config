@@ -277,7 +277,7 @@ are identical to Java -- see the [AWS Setup Guide](docs/AWS_SETUP.md).
 For the Go build/test workflow (running `go build`, `go vet`, `gofmt`, `go test`), see
 [Go Development](docs/DEVELOPMENT.md#go-development) in the Development Guide.
 
-See **[go/examples](go/examples)** for complete, runnable programs: a zero-dependency
+See **[demo/go](demo/go)** for complete, runnable programs: a zero-dependency
 `quickstart`, a full AWS/Vault-backed `direct` example, and the `plain` net/http and `gin`
 REST-endpoint demo servers.
 
@@ -371,12 +371,10 @@ Complete working examples are available in the `demo/` directory:
 - **[demo/java](demo/java)** — Plain Java application
 - **[demo/spring](demo/spring)** — Spring Boot application
 - **[demo/helidon](demo/helidon)** — Helidon application
-
-Go examples and demos are available in [go/examples](go/examples):
-- **[go/examples/quickstart](go/examples/quickstart)** — Simplest possible usage: a local embedded file, no AWS/network
-- **[go/examples/direct](go/examples/direct)** — Reading config directly in a long-running app, no HTTP/gin
-- **[go/examples/plain](go/examples/plain)** — Plain `net/http` demo server
-- **[go/examples/gin](go/examples/gin)** — Gin demo server with the REST configuration endpoint
+- **[demo/go/quickstart](demo/go/quickstart)** — Simplest possible Go usage: a local embedded file, no AWS/network
+- **[demo/go/direct](demo/go/direct)** — Reading config directly in a long-running Go app, no HTTP/gin
+- **[demo/go/plain](demo/go/plain)** — Plain Go `net/http` demo server
+- **[demo/go/gin](demo/go/gin)** — Gin demo server with the REST configuration endpoint
 
 Run examples locally (from the repo root — the Gradle wrapper only exists there):
 ```bash

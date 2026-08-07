@@ -3,7 +3,7 @@
 // (embedded into the binary) loaded directly through the library and read
 // via a Provider, entirely in plain Go code. Run it with:
 //
-//	go run ./examples/quickstart
+//	go run ./quickstart
 package main
 
 import (

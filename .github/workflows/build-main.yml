@@ -127,3 +127,21 @@ jobs:
 
       - name: Test
         run: go test ./... -v
+
+      - name: Verify gofmt formatting (demo/go examples)
+        working-directory: demo/go
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [ -n "$unformatted" ]; then
+            echo "The following files are not gofmt-formatted:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: go vet (demo/go examples)
+        working-directory: demo/go
+        run: go vet ./...
+
+      - name: Build (demo/go examples)
+        working-directory: demo/go
+        run: go build ./...

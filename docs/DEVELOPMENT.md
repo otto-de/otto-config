@@ -4,7 +4,7 @@ This guide provides detailed instructions for setting up your development enviro
 
 This repository contains two independent implementations of otto-config: the **Java** library
 (root Gradle project + `demo/java`, `demo/spring`, `demo/helidon`) and the **Go** module (`go/`,
-with its own `go/examples`). This guide covers Java first; see
+with its runnable examples in `demo/go`). This guide covers Java first; see
 [Go Development](#go-development) below for the Go-specific workflow.
 
 ## Prerequisites
@@ -132,8 +132,10 @@ This script:
 
 ## Go Development
 
-The Go module lives entirely in [go/](../go/) with its own `go.mod`. See the [Go section](../README.md#go)
-of the main README for full Go usage documentation; this section covers the build/test workflow only.
+The Go module lives entirely in [go/](../go/) with its own `go.mod`; its runnable examples live in
+[demo/go](../demo/go) as a separate, unpublished module (with a `replace` directive back to `../go`).
+See the [Go section](../README.md#go) of the main README for full Go usage documentation; this
+section covers the build/test workflow only.
 
 ### Prerequisites
 
@@ -154,25 +156,27 @@ go test ./...
 ### Running Go Demos & Examples
 
 ```bash
+cd demo/go
+
 # Simplest possible usage: local embedded file, no AWS/network
-go run ./examples/quickstart
+go run ./quickstart
 
 # Plain net/http demo server
-go run ./examples/plain
+go run ./plain
 
 # Gin demo server with the REST configuration endpoint
-go run ./examples/gin
+go run ./gin
 ```
 
-`examples/direct` and `examples/gin` exercise the full AWS/Vault source stack and expect the
+`direct` and `gin` exercise the full AWS/Vault source stack and expect the
 `demo/local` docker-compose stack (moto + Vault + AppConfigData stub) to be running, the same as
-the Java `moto` profile (run from the repository root, then return to `go/` to run the example):
+the Java `moto` profile (run from the repository root):
 
 ```bash
-cd ../demo/local && docker compose up -d
+cd demo/local && docker compose up -d
 until [ -f .env ]; do sleep 1; done
-source ./.env && cd ../../go
-go run ./examples/direct
+source ./.env && cd ../go
+go run ./direct
 ```
 
 ## VS Code Development Setup
@@ -322,10 +326,12 @@ otto-config/
 │   ├── integration/       # Framework integrations (Spring, Helidon)
 │   └── source/           # Configuration source implementations
 ├── src/test/java/        # Unit and integration tests
+├── go/                   # Go module (library only)
 ├── demo/
 │   ├── java/            # Plain Java demo
 │   ├── spring/          # Spring Boot demo
 │   ├── helidon/         # Helidon demo
+│   ├── go/              # Go examples (separate module, replace ../go)
 │   └── terraform/       # Test infrastructure
 ├── docs/                # Documentation
 └── gradle/              # Gradle configuration

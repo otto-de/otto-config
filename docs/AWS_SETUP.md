@@ -401,15 +401,15 @@ Statement:
 
 ## Testing the Go Examples Against Real AWS
 
-The Go examples under [`go/examples`](../go/examples) default to the local
+The Go examples under [`demo/go`](../demo/go) default to the local
 moto/Vault docker-compose stack via `demo/local/.env`. To test against a
 real account instead, don't source that file (so `AWS_ENDPOINT_URL` stays
 unset), make sure real credentials are resolvable (`AWS_PROFILE`, static env
 vars, or an instance/task role), and run e.g.:
 
 ```bash
-cd go
-AWS_REGION=eu-central-1 AWS_PROFILE=my-real-profile go run ./examples/plain
+cd demo/go
+AWS_REGION=eu-central-1 AWS_PROFILE=my-real-profile go run ./plain
 ```
 
 No code changes are needed — the AWS sources use the SDK's standard

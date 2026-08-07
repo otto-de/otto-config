@@ -28,7 +28,7 @@ dependencies {
 // which System.setProperty cannot fake. Build the artifacts and expose
 // their paths via system properties.
 
-def goModuleDir = rootProject.file('go')
+def goModuleDir = rootProject.file('demo/go')
 def goDemoBinary = layout.buildDirectory.file('go-demo/plain-demo').get().asFile
 
 tasks.register('buildGoPlainDemo', Exec) {
@@ -36,7 +36,7 @@ tasks.register('buildGoPlainDemo', Exec) {
     outputs.file(goDemoBinary)
     workingDir goModuleDir
     doFirst { goDemoBinary.parentFile.mkdirs() }
-    commandLine 'go', 'build', '-o', goDemoBinary.absolutePath, './examples/plain'
+    commandLine 'go', 'build', '-o', goDemoBinary.absolutePath, './plain'
 }
 
 tasks.named('test') {

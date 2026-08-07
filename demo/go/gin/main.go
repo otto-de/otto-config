@@ -12,8 +12,8 @@
 //
 //	cd demo/local && docker compose up -d
 //	until [ -f .env ]; do sleep 1; done
-//	source ./.env && cd ../../go
-//	go run ./examples/gin
+//	source ./.env && cd ../go
+//	go run ./gin
 package main
 
 import (
