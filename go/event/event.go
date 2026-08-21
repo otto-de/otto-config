@@ -231,10 +231,16 @@ func (l *Listener) PollAndRefresh() {
 }
 
 func (l *Listener) dispatch(event ottoconfig.ChangeEvent) {
+	anyMatch := false
 	for _, source := range l.ctx.SourceRegistry().Values() {
 		if source.OnChanged(event) {
 			source.Refresh()
+			anyMatch = true
 		}
+	}
+	if !anyMatch {
+		slog.Default().Debug("no registered source matched event",
+			"source", event.EventSource(), "detailType", event.DetailType())
 	}
 }
 

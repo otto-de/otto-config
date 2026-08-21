@@ -48,7 +48,8 @@ func GetValueAsStringOr[T any](c Configuration[T], key, def string) string {
 }
 
 // GetValueAsInt parses the value for key as an int, returning def if the key
-// is missing or the value cannot be parsed.
+// is missing or the value cannot be parsed. Java's getValueAsInt throws a
+// NumberFormatException on an unparseable value instead.
 func GetValueAsInt[T any](c Configuration[T], key string, def int) int {
 	s := GetValueAsStringOr[T](c, key, strconv.Itoa(def))
 	n, err := strconv.Atoi(s)
@@ -58,15 +59,16 @@ func GetValueAsInt[T any](c Configuration[T], key string, def int) int {
 	return n
 }
 
-// GetValueAsBool parses the value for key as a bool, returning def if the key
-// is missing or the value cannot be parsed.
+// GetValueAsBool returns true only when the value for key equals "true"
+// (case-insensitive), or def if the key is missing. This mirrors Java's
+// getValueAsBoolean, which delegates to Boolean.parseBoolean: values such as
+// "1", "yes" or "on" are false, not an error and not the default.
 func GetValueAsBool[T any](c Configuration[T], key string, def bool) bool {
-	s := GetValueAsStringOr[T](c, key, strconv.FormatBool(def))
-	b, err := strconv.ParseBool(s)
-	if err != nil {
+	s, ok := GetValueAsString[T](c, key)
+	if !ok {
 		return def
 	}
-	return b
+	return strings.EqualFold(s, "true")
 }
 
 // GetValues splits the value for key on commas, trims whitespace, drops empty

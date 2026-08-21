@@ -142,13 +142,13 @@ func (h *Handler) route(w http.ResponseWriter, r *http.Request) {
 	segments := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
 	switch {
 	case len(segments) == 1 && segments[0] == "configs":
-		h.writeValues(w, h.ctx.AppName())
+		h.writeValues(w, r, h.ctx.AppName())
 	case len(segments) == 2 && segments[0] == "configs":
-		h.writeValue(w, h.ctx.AppName(), segments[1])
+		h.writeValue(w, r, h.ctx.AppName(), segments[1])
 	case len(segments) == 2 && segments[1] == "configs":
-		h.writeValues(w, segments[0])
+		h.writeValues(w, r, segments[0])
 	case len(segments) == 3 && segments[1] == "configs":
-		h.writeValue(w, segments[0], segments[2])
+		h.writeValue(w, r, segments[0], segments[2])
 	default:
 		http.NotFound(w, r)
 	}
@@ -156,30 +156,27 @@ func (h *Handler) route(w http.ResponseWriter, r *http.Request) {
 
 // ServeHTTP makes Handler itself usable as an http.Handler.
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h.Mux().ServeHTTP(w, r)
+	h.route(w, r)
 }
 
-func (h *Handler) writeValues(w http.ResponseWriter, app string) {
+func (h *Handler) writeValues(w http.ResponseWriter, r *http.Request, app string) {
 	provider, ok := h.provider(app)
 	if !ok {
-		http.NotFound(w, nil)
+		http.NotFound(w, r)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(provider.AsMap())
 }
 
-func (h *Handler) writeValue(w http.ResponseWriter, app, key string) {
+// writeValue mirrors Java's ConfigurationEndpoint: an unknown app is a 404,
+// but an unknown key is a 200 with an empty body (ResponseEntity.ok(null)).
+func (h *Handler) writeValue(w http.ResponseWriter, r *http.Request, app, key string) {
 	provider, ok := h.provider(app)
 	if !ok {
-		http.NotFound(w, nil)
-		return
-	}
-	value, ok := provider.GetValue(key)
-	if !ok {
-		http.NotFound(w, nil)
+		http.NotFound(w, r)
 		return
 	}
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	_, _ = w.Write([]byte(value))
+	_, _ = w.Write([]byte(provider.GetValueOr(key, "")))
 }

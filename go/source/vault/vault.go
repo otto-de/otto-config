@@ -210,14 +210,24 @@ func newAuthenticatedClient(ctx *ottoconfig.Context) (*vaultapi.Client, error) {
 	var authMethod vaultapi.AuthMethod
 	switch authType {
 	case "aws":
+		roleName := ottoconfig.GetValueAsStringOr(ctx.Configuration(), "otto.config.hashicorp.vault.auth.aws.role.name", "")
+		roleARN := ottoconfig.GetValueAsStringOr(ctx.Configuration(), "otto.config.hashicorp.vault.auth.aws.role.arn", "")
+		headerValue := ottoconfig.GetValueAsStringOr(ctx.Configuration(), "otto.config.hashicorp.vault.auth.aws.header.value", "")
+		region := ottoconfig.GetValueAsStringOr(ctx.Configuration(), "otto.config.hashicorp.vault.auth.aws.region", "")
+
+		if roleARN != "" {
+			authMethod = &assumeRoleIAMAuth{role: roleName, roleARN: roleARN, region: region, headerValue: headerValue}
+			break
+		}
+
 		var opts []vaultaws.LoginOption
-		if roleName, ok := ottoconfig.GetValueAsString(ctx.Configuration(), "otto.config.hashicorp.vault.auth.aws.role.name"); ok && roleName != "" {
+		if roleName != "" {
 			opts = append(opts, vaultaws.WithRole(roleName))
 		}
-		if headerValue, ok := ottoconfig.GetValueAsString(ctx.Configuration(), "otto.config.hashicorp.vault.auth.aws.header.value"); ok && headerValue != "" {
+		if headerValue != "" {
 			opts = append(opts, vaultaws.WithIAMServerIDHeader(headerValue))
 		}
-		if region, ok := ottoconfig.GetValueAsString(ctx.Configuration(), "otto.config.hashicorp.vault.auth.aws.region"); ok && region != "" {
+		if region != "" {
 			opts = append(opts, vaultaws.WithRegion(region))
 		}
 		opts = append(opts, vaultaws.WithIAMAuth())

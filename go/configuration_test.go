@@ -34,8 +34,15 @@ func TestGetValueAsBool(t *testing.T) {
 	if got := GetValueAsBool[string](c, "missing", true); !got {
 		t.Fatal("expected default true for missing key")
 	}
-	c2 := NewCacheWithProperties(map[string]string{"k": "not-a-bool"})
-	if got := GetValueAsBool[string](c2, "k", true); !got {
-		t.Fatal("expected default true for unparsable bool")
+	if got := GetValueAsBool[string](NewCacheWithProperties(map[string]string{"k": "TrUe"}), "k", false); !got {
+		t.Fatal("expected true for case-insensitive \"true\"")
+	}
+	// Java's Boolean.parseBoolean yields false for any present non-"true"
+	// value, so the default must not be applied here.
+	for _, value := range []string{"not-a-bool", "1", "yes", "on"} {
+		c2 := NewCacheWithProperties(map[string]string{"k": value})
+		if got := GetValueAsBool[string](c2, "k", true); got {
+			t.Fatalf("expected false for present value %q, got true", value)
+		}
 	}
 }
