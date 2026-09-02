@@ -49,7 +49,7 @@ public class SsmSource extends PropertySource {
 
     @Override
     public Properties load() throws SourceException {
-        System.out.println("Reading SSM parameter from " + this.ssmPathPrefix);
+        log.debug("Reading SSM parameter from {}", this.ssmPathPrefix);
 
         try {
             Map<String, String> properties = new HashMap<>();
@@ -61,7 +61,7 @@ public class SsmSource extends PropertySource {
             paginator.stream().flatMap((page) -> {
                 return page.parameters().stream();
             }).forEach((param) -> {
-                System.out.println("Read SSM parameter: name='" + param.name() + "', valuePrefix='" + firstThreeChars(param.value()) + "...'");
+                log.debug("Read SSM parameter: name='{}', valuePrefix='{}...'", param.name(), firstThreeChars(param.value()));
                 if (this.excludeSecrets && param.type() == ParameterType.SECURE_STRING) {
                     return; // exclude this parameter entirely
                 }
@@ -71,7 +71,7 @@ public class SsmSource extends PropertySource {
             });
             return new Properties(properties);
         } catch (Exception e) {
-            System.out.println("Exception reading ssm " + e.getMessage());
+            log.debug("Exception reading ssm {}", e.getMessage());
             throw new SourceException("Could not load Otto Config properties from SSM", e);
         }
     }
