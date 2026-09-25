@@ -12,7 +12,9 @@ import de.otto.config.core.client.RestException;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Getter
 public class VaultAppRoleAuthenticator extends VaultAuthenticator {
     private static final String LOGIN_PATH = "/v1/auth/approle/login";
@@ -32,11 +34,14 @@ public class VaultAppRoleAuthenticator extends VaultAuthenticator {
     @Override
     public void generateToken() throws VaultException {
         try {
+            log.debug("Logging in to Vault at {}{} with AppRole roleId='{}'", this.url, LOGIN_PATH, this.roleId);
             VaultResponse response = this.post(this.url + LOGIN_PATH,
                                                this.body, 
                                                Map.of(HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString()));
             updateToken(response);
+            log.debug("Successfully logged in to Vault at {} with AppRole roleId='{}'", this.url, this.roleId);
         } catch (RestException e) {
+            log.error("Failed to log in to Vault at {} with AppRole roleId='{}': {}", this.url, this.roleId, e.getMessage(), e);
             throw new VaultException("Failed to generate token: " + e.getMessage(), e);
         }
     }  

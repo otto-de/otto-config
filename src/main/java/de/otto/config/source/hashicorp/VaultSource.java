@@ -31,14 +31,18 @@ public class VaultSource extends PropertySource {
     @Override
     public Properties load() throws SourceException {
         try {
+            log.debug("Loading secrets from Vault: path='{}', previousVersions={}", this.secretPath, this.previousVersions);
             VaultResponse response = this.vaultClient.read(this.secretPath);
 
             if (response.data() != null && !response.data().data().isEmpty()) {
                 Map<String, String> secrets = appendVersions(response.data().data(), this.secretPath);
+                log.debug("Loaded {} secret(s) from Vault path='{}'", secrets.size(), this.secretPath);
                 return new Properties(secrets);
             }
+            log.debug("No secrets found in Vault path='{}', returning empty", this.secretPath);
             return getEmptyValue();
         } catch (VaultException e) {
+            log.error("Unable to get secrets from Vault path='{}': {}", this.secretPath, e.getMessage(), e);
             throw new SourceException("Unable to get secrets from Vault", e);
         }
     }

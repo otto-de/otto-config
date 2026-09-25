@@ -319,6 +319,15 @@ Add to `application.properties` or `logback.xml`:
 logging.level.de.otto.config=DEBUG
 ```
 
+For Vault only (token login/renewal and secret reads):
+
+```properties
+logging.level.de.otto.config.client.hashicorp=DEBUG
+logging.level.de.otto.config.source.hashicorp=DEBUG
+```
+
+Login and fetch failures are logged at `ERROR` regardless of the debug level.
+
 ### Common Issues
 
 **Issue**: Vault connection failed

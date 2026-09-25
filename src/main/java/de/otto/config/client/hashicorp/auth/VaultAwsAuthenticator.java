@@ -63,6 +63,8 @@ public class VaultAwsAuthenticator extends VaultAuthenticator {
     @Override
     public void generateToken() throws VaultException {
          try {
+            log.debug("Logging in to Vault at {}{} with AWS IAM auth: role='{}', roleArn='{}', region='{}'",
+                      this.url, LOGIN_PATH, this.role, this.roleArn, this.region.id());
             Map<String, Object> awsAuthPayload = this.roleArn != null &&
                                                  !this.roleArn.isEmpty()
                                                     ? createAwsAuthPayload(loadCredentialsFromRole())
@@ -74,8 +76,10 @@ public class VaultAwsAuthenticator extends VaultAuthenticator {
                                                Map.of(HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString()));
             
             updateToken(response);
+            log.debug("Successfully logged in to Vault at {} with AWS IAM auth role='{}'", this.url, this.role);
             
         } catch (Exception e) {
+            log.error("Failed to log in to Vault at {} with AWS IAM auth role='{}': {}", this.url, this.role, e.getMessage(), e);
             throw new VaultException("Failed to generate Vault token: " + e.getMessage(), e);
         }
     }
@@ -86,6 +90,7 @@ public class VaultAwsAuthenticator extends VaultAuthenticator {
                 .credentialsProvider(DefaultCredentialsProvider.create())
                 .build()) {
 
+            log.debug("Assuming AWS role '{}' in region '{}' for Vault login", this.roleArn, this.region.id());
             AssumeRoleRequest assumeRoleRequest = AssumeRoleRequest.builder()
                     .roleArn(roleArn)
                     .roleSessionName("vault-login-session")
@@ -95,12 +100,14 @@ public class VaultAwsAuthenticator extends VaultAuthenticator {
             return response.credentials();
             
         } catch (Exception e) {
+            log.error("Failed to assume AWS role '{}' for Vault login: {}", this.roleArn, e.getMessage(), e);
             throw new VaultException("Failed to load credentials from role: " + e.getMessage(), e);
         }
     }
 
     private AwsSessionCredentials loadCredentialsFromSession() throws VaultException {
         try {
+            log.debug("Resolving AWS credentials from the default credentials provider chain for Vault login");
             AwsCredentials creds = DefaultCredentialsProvider.create().resolveCredentials();
             if (creds instanceof AwsSessionCredentials) {
                 return (AwsSessionCredentials) creds;
@@ -113,6 +120,7 @@ public class VaultAwsAuthenticator extends VaultAuthenticator {
                         null);
             }
         } catch (Exception e) {
+            log.error("Failed to resolve AWS credentials for Vault login: {}", e.getMessage(), e);
             throw new VaultException("Failed to load credentials from session: " + e.getMessage(), e);
         }
     }

@@ -40,9 +40,13 @@ public abstract class VaultAuthenticator extends RestClient<VaultResponse> {
 
     private synchronized void refreshTokenIfNeeded() throws VaultException {
         if (isTokenExpired()) {
+            log.debug("Vault token is missing or expired (expiry={}), generating a new token at {}", this.tokenExpiry, this.url);
             generateToken();
         } else if (isTokenExpiringSoon()) {
+            log.debug("Vault token is expiring soon (expiry={}), renewing token at {}", this.tokenExpiry, this.url);
             renewToken();
+        } else {
+            log.debug("Reusing valid Vault token (expiry={})", this.tokenExpiry);
         }
     }
 
@@ -58,12 +62,13 @@ public abstract class VaultAuthenticator extends RestClient<VaultResponse> {
 
     public void renewToken() throws VaultException {
         try {
+            log.debug("Renewing Vault token via {}{}", this.url, RENEW_PATH);
             VaultResponse response = this.post(this.url + RENEW_PATH,
                                                Map.of(VaultHeaders.VAULT_TOKEN, this.token, 
                                                       HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString()));
             updateToken(response);
         } catch (RestException e) {
-            log.error("Exception during token renewal, attempting to re-generate token", e);
+            log.error("Failed to renew Vault token at {}: {}. Attempting to re-generate token", this.url, e.getMessage(), e);
             generateToken();
         }
     }
@@ -72,5 +77,6 @@ public abstract class VaultAuthenticator extends RestClient<VaultResponse> {
         this.token = response.auth().client_token();
         this.leaseDuration = response.auth().lease_duration();
         this.tokenExpiry = Instant.now().plusSeconds(this.leaseDuration);
+        log.debug("Vault token updated: leaseDuration={}s, expiry={}", this.leaseDuration, this.tokenExpiry);
     }
 }
