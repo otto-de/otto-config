@@ -5,6 +5,7 @@ This document covers advanced customization and architecture details for Otto Co
 ## Table of Contents
 - [Architecture](#architecture)
 - [Priority Order](#priority-order)
+- [Refresh Scheduling](#refresh-scheduling)
 - [REST API](#-rest-api)
 - [Adding Custom Sources](#adding-custom-sources)
 - [Implementing a Custom Provider](#implementing-a-custom-provider)
@@ -145,6 +146,23 @@ Configuration properties are resolved in this order (highest to lowest priority)
 3. **Local application config** (application.properties, application.yml)  
 
 This enables local overrides via environment variables for development and testing while maintaining production configurations.
+
+## Refresh Scheduling
+
+Otto Config periodically reloads all configured sources (AWS AppConfig, Secrets Manager, Parameter Store, Vault, …) and polls for change events. Both intervals are configurable and accept [ISO-8601 durations](https://docs.oracle.com/javase/8/docs/api/java/time/Duration.html#parse-java.lang.CharSequence-) (e.g. `PT30S`, `PT2M`, `PT1H`):
+
+| Property | Default | Description |
+|---|---|---|
+| `otto.config.refresh.enabled` | `true` | Enables/disables the scheduler entirely |
+| `otto.config.refresh.interval` | `PT5M` | Interval of the full refresh, which re-reads every source |
+| `otto.config.refresh.poll.interval` | `PT10S` | Interval of the change-event poll (e.g. SQS) used for event-driven refresh |
+
+```properties
+otto.config.refresh.interval=PT1M
+otto.config.refresh.poll.interval=PT15S
+```
+
+The same property names apply to both the Spring and Helidon integrations. The configured value is also used as the initial delay, so the first refresh happens one interval after startup.
 
 ## 🔑 REST API
 

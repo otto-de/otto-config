@@ -10,6 +10,11 @@ import org.springframework.context.ApplicationContext;
 import de.otto.config.core.Context;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+
+import java.util.concurrent.TimeUnit;
 
 
 public class RefreshSchedulerTest {
@@ -27,6 +32,21 @@ public class RefreshSchedulerTest {
         @Test
         public void shouldCreateBeanWhenEnabled() {
             assertNotNull(applicationContext.getBean(RefreshScheduler.class));
+        }
+    }
+
+    @Nested
+    @SpringBootTest(classes = {RefreshScheduler.class},
+                    properties = {"otto.config.refresh.interval=PT1S", "otto.config.refresh.poll.interval=PT1S"})
+    class WhenIntervalsConfigured {
+
+        @MockitoBean
+        private Context context;
+
+        @Test
+        public void shouldScheduleWithConfiguredIntervals() {
+            verify(context, timeout(TimeUnit.SECONDS.toMillis(10)).atLeastOnce()).refresh();
+            verify(context, atLeastOnce()).pollAndRefresh();
         }
     }
 }

@@ -17,7 +17,7 @@ A Java library for dynamic, centralized configuration management using AWS AppCo
 ## Features
 
 - **Fast Setup** — Add the dependency and start using configuration immediately
-- **Auto Refresh** — Configuration updates every 5 minutes by default, no restarts required; optional event-driven refresh available for immediate updates (see [AWS Setup Guide](docs/AWS_SETUP.md#event-driven-refresh))
+- **Auto Refresh** — Configuration updates every 5 minutes by default (configurable via `otto.config.refresh.interval`, see [Advanced Topics](docs/ADVANCED.md#refresh-scheduling)), no restarts required; optional event-driven refresh available for immediate updates (see [AWS Setup Guide](docs/AWS_SETUP.md#event-driven-refresh))
 - **Unified API** — Access properties and toggles from multiple sources through one interface
 - **Framework Integration** — Auto-registers with Spring Boot and Helidon; works with plain Java and Clojure too
 - **REST API:** Exposes a REST API for accessing configuration values, enabling non-Java apps (such as frontend applications) to consume centralized configuration without direct Otto Config integration

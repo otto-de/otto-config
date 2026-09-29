@@ -3,8 +3,6 @@ package de.otto.config.integration.spring.scheduler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.concurrent.TimeUnit;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -29,13 +27,15 @@ public class RefreshScheduler implements InitializingBean {
         log.info("Starting Otto Config scheduler");
     }
 
-    @Scheduled(initialDelay = 5, fixedDelay = 5, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(initialDelayString = "${otto.config.refresh.interval:PT5M}",
+               fixedDelayString = "${otto.config.refresh.interval:PT5M}")
     public void refresh() {
         log.debug("Refreshing Otto Config configurations");
         this.context.refresh();
     }
 
-    @Scheduled(initialDelay = 10, fixedDelay = 10, timeUnit = TimeUnit.SECONDS)
+    @Scheduled(initialDelayString = "${otto.config.refresh.poll.interval:PT10S}",
+               fixedDelayString = "${otto.config.refresh.poll.interval:PT10S}")
     public void pollAndRefresh() {
         log.debug("Polling and refreshing Otto Config configurations");
         this.context.pollAndRefresh();

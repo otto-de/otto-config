@@ -68,6 +68,7 @@ dependencies {
     testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
 
     testImplementation "io.helidon.config:helidon-config:${helidonVersion}"
+    testImplementation "io.helidon.scheduling:helidon-scheduling:${helidonVersion}"
     testImplementation "io.helidon.microprofile.testing:helidon-microprofile-testing-junit5:${helidonVersion}"
 	testImplementation "io.helidon.microprofile.testing:helidon-microprofile-testing-mocking:${helidonVersion}"
 }
