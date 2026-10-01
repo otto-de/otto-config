@@ -11,6 +11,7 @@ A Java library for dynamic, centralized configuration management using AWS AppCo
 - [Quick Start](#quick-start)
 - [Framework Integration](#framework-integration)
 - [Configuration Sources](#configuration-sources)
+- [Metrics](#metrics)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
 
@@ -23,6 +24,7 @@ A Java library for dynamic, centralized configuration management using AWS AppCo
 - **REST API:** Exposes a REST API for accessing configuration values, enabling non-Java apps (such as frontend applications) to consume centralized configuration without direct Otto Config integration
 - **Multiple Sources** — AWS AppConfig, Secrets Manager, Parameter Store, Hashicorp Vault, and local files
 - **Type Safe** — Built-in support for String, Boolean, and Integer types
+- **Pluggable Metrics** — Observe source loads, HTTP calls, and refresh cycles via a pluggable `ConfigMetrics` hook, with a ready-to-use Micrometer adapter (see [Advanced Topics](docs/ADVANCED.md#metrics))
 
 ## Quick Start
 
@@ -245,10 +247,48 @@ otto.config.aws.s3.toggles.folder.name=feature-toggles/
 
 For detailed AWS setup instructions, IAM permissions, and Terraform examples, see **[docs/AWS_SETUP.md](docs/AWS_SETUP.md)**.
 
+## Metrics
+
+Otto Config can report metrics (source cache hits/misses, load durations, HTTP calls, refresh cycles, change events) through a pluggable `ConfigMetrics` SPI. Metrics are **disabled by default (opt-in)** — enable with `otto.config.metrics.enabled=true`. Nothing is collected unless both enabled and an implementation is registered — and if nothing is wired up (or Micrometer isn't on the classpath), it's a silent no-op, never an error.
+
+**Custom implementation** (any app, e.g. plain Java):
+```java
+public class MyConfigMetrics implements ConfigMetrics {
+    @Override
+    public void sourceRequested(String source, CacheResult result) {
+        // e.g. increment your own counter
+    }
+}
+```
+Register it either via `META-INF/services/de.otto.config.core.metrics.ConfigMetrics` (containing the fully-qualified class name) or programmatically:
+```java
+ConfigMetricsRegistry.register(new MyConfigMetrics());
+```
+```properties
+otto.config.metrics.enabled=true
+```
+
+**Spring Boot with Micrometer** — add Micrometer/Actuator, register the bundled adapter, and enable metrics:
+```groovy
+implementation "org.springframework.boot:spring-boot-starter-actuator"
+implementation "io.micrometer:micrometer-registry-prometheus" // or any other Micrometer registry
+```
+```
+# META-INF/services/de.otto.config.core.metrics.ConfigMetrics
+de.otto.config.integration.micrometer.MicrometerConfigMetrics
+```
+```properties
+otto.config.metrics.enabled=true
+management.endpoints.web.exposure.include=health,metrics,prometheus
+```
+Query it via `GET /actuator/metrics/otto.config.source.requests` (or scrape `/actuator/prometheus`).
+
+See **[docs/ADVANCED.md#metrics](docs/ADVANCED.md#metrics)** for the full event reference, metric/tag table, and thread-safety notes, and the **[demo/java](demo/java)**, **[demo/spring](demo/spring)**, and **[demo/helidon](demo/helidon)** projects for complete, runnable examples.
+
 ## Documentation
 
 - **[AWS Setup Guide](docs/AWS_SETUP.md)** — Detailed AWS configuration for AppConfig, Secrets Manager, Parameter Store, and Vault
-- **[Advanced Topics](docs/ADVANCED.md)** — Architecture diagrams, custom sources, custom providers, priority order
+- **[Advanced Topics](docs/ADVANCED.md)** — Architecture diagrams, custom sources, custom providers, priority order, metrics
 - **[Development Guide](docs/DEVELOPMENT.md)** — Local development setup, VS Code configuration, testing
 - **[Contributing](CONTRIBUTING.md)** — How to contribute to the project
 - **[Publishing](PUBLISHING.md)** — Release and publishing process (JReleaser → Maven Central + GitHub Packages)

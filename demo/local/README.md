@@ -37,6 +37,30 @@ source ./demo/local/.env
 docker compose -f demo/local/docker-compose.yml down -v
 ```
 
+## Metrics
+
+Each demo registers a `ConfigMetrics` implementation (via `META-INF/services`)
+and exposes it alongside the framework's own metrics rather than via a
+separate custom endpoint. Metrics collection is **opt-in**: the library
+defaults `otto.config.metrics.enabled` to `false`, so each demo sets it to
+`true` explicitly (Spring `application.properties`, Helidon
+`microprofile-config.properties`, and the plain Java demo's seeded
+`Configuration` in `Main`) — without that, the registered `ConfigMetrics`
+implementation never receives any calls.
+
+* **java**: an in-memory `CountingConfigMetrics` example; there's no
+  framework/metrics system to piggyback on, so the summary is just logged
+  once on startup.
+* **spring**: the Micrometer adapter (`MicrometerConfigMetrics`), published
+  through Spring Boot Actuator next to the JVM/HTTP metrics, e.g.
+  `GET /actuator/metrics/otto.config.source.requests` or, in Prometheus
+  format, `GET /actuator/prometheus`.
+* **helidon**: a `HelidonConfigMetrics` example bridging into Helidon's own
+  metrics registry (`io.helidon.metrics.api`), so the `otto.config.*` meters
+  show up at Helidon's built-in `GET /metrics` next to the base/vendor
+  metrics.
+
+
 ## How the demo picks up the mocks
 
 The AWS SDK v2 used by Otto Config natively honours the `AWS_ENDPOINT_URL`

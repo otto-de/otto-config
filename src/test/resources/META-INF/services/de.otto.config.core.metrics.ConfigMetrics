@@ -1,0 +1,3 @@
+de.otto.config.core.metrics.NoSuchBrokenConfigMetricsImpl
+de.otto.config.core.metrics.BrokenConfigMetrics
+de.otto.config.core.metrics.DiscoverableTestConfigMetrics

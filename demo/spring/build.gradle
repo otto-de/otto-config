@@ -20,6 +20,9 @@ dependencies {
     implementation project(':') 
     implementation "org.springframework.boot:spring-boot-starter:${springBootVersion}"
     implementation "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
+    // Exposes otto.config.* metrics (collected via MicrometerConfigMetrics) in Prometheus format at /actuator/prometheus
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"

@@ -24,6 +24,9 @@ import lombok.extern.slf4j.Slf4j;
  * 2. Create a Context using Context.from(appName, profile, configuration)
  * 3. Build ConfigurationProvider from the Context
  * 4. Expose configuration values from all sources via a {@link HttpServer} at {@code /config}
+ * 5. Log a summary of {@link CountingConfigMetrics} counters, demonstrating a custom
+ *    {@code ConfigMetrics} implementation registered via {@code META-INF/services}. There's no
+ *    framework/metrics-system here, so the summary is just logged rather than exposed via HTTP.
  *
  * The E2E test asserts on {@code GET /config}; the server stays up until the
  * JVM is signalled. Port is taken from the {@code SERVER_PORT} env var (defaults to 8080).
@@ -54,6 +57,9 @@ public class Main {
         seed.put("otto.config.hashicorp.vault.auth.approle.secret.id",
                  System.getenv().getOrDefault("VAULT_SECRET_ID", ""));
         seed.put("otto.config.aws.change.notifications.enabled", "false");
+        // Metrics: opt-in (library default is otto.config.metrics.enabled=false), must be set
+        // explicitly to true for the ConfigMetrics SPI to collect anything.
+        seed.put("otto.config.metrics.enabled", "true");
 
         Configuration<String> configuration = ConfigurationCache.<String>builder().properties(seed).build();
 
@@ -82,6 +88,13 @@ public class Main {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> server.stop(1)));
         server.start();
         log.info("Plain Java demo listening on http://0.0.0.0:{}/config", port);
+
+        // There's no framework here to piggyback on for metrics, so CountingConfigMetrics
+        // (registered via META-INF/services) is just printed to the log.
+        String metricsSummary = CountingConfigMetrics.currentSummary();
+        if (metricsSummary != null) {
+            log.info("{}", metricsSummary);
+        }
     }
 
     private static String renderJson(ConfigurationProvider provider) {

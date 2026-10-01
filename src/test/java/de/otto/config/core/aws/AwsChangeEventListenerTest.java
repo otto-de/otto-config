@@ -3,9 +3,12 @@ package de.otto.config.core.aws;
 import de.otto.config.core.Configuration;
 import de.otto.config.core.Context;
 import de.otto.config.core.aws.event.ChangeEventParser;
+import de.otto.config.core.metrics.ConfigMetrics;
+import de.otto.config.core.metrics.ConfigMetricsRegistry;
 import de.otto.config.core.registry.SourceRegistry;
 import de.otto.config.core.source.Source;
 import de.otto.config.core.source.SourceChangeEvent;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -16,11 +19,14 @@ import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 class AwsChangeEventListenerTest {
 
@@ -39,12 +45,27 @@ class AwsChangeEventListenerTest {
     private static final String QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/123456789/test-queue";
 
     private AwsChangeEventListener listener;
+    private List<Integer> recordedChangeEventCounts;
+
+    @AfterEach
+    void tearDown() {
+        ConfigMetricsRegistry.reset();
+    }
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         when(context.getSourceRegistry()).thenReturn(sourceRegistry);
         listener = new AwsChangeEventListener(sqsClient, QUEUE_URL, context, eventParser);
+
+        recordedChangeEventCounts = new ArrayList<>();
+        ConfigMetricsRegistry.setEnabled(true);
+        ConfigMetricsRegistry.register(new ConfigMetrics() {
+            @Override
+            public void changeEventsReceived(int count) {
+                recordedChangeEventCounts.add(count);
+            }
+        });
     }
 
     @Test
@@ -59,6 +80,7 @@ class AwsChangeEventListenerTest {
         // then
         verifyNoInteractions(eventParser);
         verify(sqsClient, never()).deleteMessageBatch(any(DeleteMessageBatchRequest.class));
+        assertThat(recordedChangeEventCounts, is(empty()));
     }
 
     @Test
@@ -83,6 +105,7 @@ class AwsChangeEventListenerTest {
         // then
         verify(eventParser).parse(message.body());
         verify(sqsClient).deleteMessageBatch(any(DeleteMessageBatchRequest.class));
+        assertThat(recordedChangeEventCounts, contains(1));
     }
 
     @Test

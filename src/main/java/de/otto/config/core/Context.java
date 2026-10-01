@@ -1,7 +1,10 @@
 package de.otto.config.core;
 
+import java.time.Duration;
 import java.util.List;
 
+import de.otto.config.core.metrics.ConfigMetrics.RefreshType;
+import de.otto.config.core.metrics.ConfigMetricsRegistry;
 import de.otto.config.core.registry.ClientRegistry;
 import de.otto.config.core.registry.PropertyRegistry;
 import de.otto.config.core.registry.ProviderRegistry;
@@ -37,6 +40,10 @@ public final class Context {
         this.excludeSecrets = excludeSecrets != null ? excludeSecrets : Boolean.FALSE;
         this.configuration = configuration;
         this.clientRegistry = clientRegistry != null ? clientRegistry : ClientRegistry.createDefault();
+        // Metrics are process-wide: a Context may only switch them on, so a secondary Context without the property can't disable them
+        if (configuration != null && configuration.getValueAsBoolean("otto.config.metrics.enabled", false)) {
+            ConfigMetricsRegistry.setEnabled(true);
+        }
         this.sourceRegistry = SourceRegistry.from(this);
         this.providerRegistry = ProviderRegistry.builder().build();
         this.propertyRegistry = propertyRegistry != null ? propertyRegistry : PropertyRegistry.builder().build();
@@ -44,16 +51,20 @@ public final class Context {
     }
 
     public void refresh() {
+        long start = System.nanoTime();
         providerRegistry.refresh();
         propertyRegistry.refresh();
+        ConfigMetricsRegistry.get().refresh(RefreshType.FULL, Duration.ofNanos(System.nanoTime() - start));
     }
 
     @SuppressWarnings("null")
     public void pollAndRefresh() {
         if (!sourceChangeEventListeners.isEmpty()) {
+            long start = System.nanoTime();
             sourceChangeEventListeners.forEach(SourceChangeEventListener::pollAndRefresh);
             providerRegistry.refreshInPlace();
             propertyRegistry.refreshInPlace();
+            ConfigMetricsRegistry.get().refresh(RefreshType.POLL, Duration.ofNanos(System.nanoTime() - start));
         }
     }
 

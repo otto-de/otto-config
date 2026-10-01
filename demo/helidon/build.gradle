@@ -28,6 +28,8 @@ dependencies {
     implementation "io.helidon.microprofile.scheduling:helidon-microprofile-scheduling:${helidonVersion}"
     implementation "io.helidon.microprofile.bundles:helidon-microprofile:${helidonVersion}"
     implementation "io.helidon.config:helidon-config:${helidonVersion}"
+    // Used by HelidonConfigMetrics to bridge otto-config metrics into Helidon's built-in /metrics endpoint.
+    implementation "io.helidon.metrics:helidon-metrics-api:${helidonVersion}"
 
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"

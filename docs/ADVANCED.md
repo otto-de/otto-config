@@ -6,6 +6,7 @@ This document covers advanced customization and architecture details for Otto Co
 - [Architecture](#architecture)
 - [Priority Order](#priority-order)
 - [Refresh Scheduling](#refresh-scheduling)
+- [Metrics](#metrics)
 - [REST API](#-rest-api)
 - [Adding Custom Sources](#adding-custom-sources)
 - [Implementing a Custom Provider](#implementing-a-custom-provider)
@@ -163,6 +164,77 @@ otto.config.refresh.poll.interval=PT15S
 ```
 
 The same property names apply to both the Spring and Helidon integrations. The configured value is also used as the initial delay, so the first refresh happens one interval after startup.
+
+## Metrics
+
+Otto Config exposes a pluggable metrics hook, `de.otto.config.core.metrics.ConfigMetrics`, so you can observe source loads, HTTP calls, and refresh cycles without coupling the library to any specific metrics backend. All methods are no-ops by default; implement only what you need.
+
+### Interface Overview
+
+```java
+public interface ConfigMetrics {
+    void sourceRequested(String source, CacheResult result);
+    void sourceLoaded(String source, Duration duration, boolean empty);
+    void sourceLoadFailed(String source, Duration duration, Throwable error);
+    void httpRequest(String client, String method, int status, Duration duration);
+    void refresh(RefreshType type, Duration duration);
+    void changeEventsReceived(int count);
+}
+```
+
+| Event | When it fires |
+|---|---|
+| `sourceRequested` | Every time a source is asked for its value, tagged with a `CacheResult`: `HIT` (served from cache, no load), `MISS` (cache was empty, had to load), or `REFRESH` (load forced regardless of cache state). |
+| `sourceLoaded` | A source `load()` call succeeded. `empty` results are **not** cached, so the next request for that source is reported as `MISS` again. |
+| `sourceLoadFailed` | A source `load()` call threw. The previously cached value (if any) keeps being served; otherwise the source's empty value is returned. |
+| `httpRequest` | An HTTP call made by a built-in REST client (e.g. Vault). `status` is `-1` if no response was received at all. |
+| `refresh` | A refresh cycle completed, tagged `FULL` (the scheduled `otto.config.refresh.interval` cycle) or `POLL` (the change-event poll). `POLL` is only recorded when change notifications are enabled and at least one listener is registered — otherwise `pollAndRefresh()` is a no-op and nothing is recorded. |
+| `changeEventsReceived` | Change-event messages were received from the change-notification transport (e.g. SQS), with the batch size. |
+
+### Registering an Implementation
+
+Two ways to activate a `ConfigMetrics` implementation (both require metrics to be [enabled](#enabling-metrics), see below):
+
+1. **`META-INF/services`** — add a file `META-INF/services/de.otto.config.core.metrics.ConfigMetrics` listing your implementation's fully-qualified class name(s). All discovered implementations are fanned out to; otto-config is unaware of registration order.
+2. **Programmatic** — call `ConfigMetricsRegistry.register(new MyConfigMetrics())` at startup (e.g. from a `@PostConstruct` or `@Bean` initializer). This replaces whatever was discovered via `META-INF/services`.
+
+If nothing is registered or discoverable — or metrics are disabled, which is the default — `ConfigMetricsRegistry.get()` returns `ConfigMetrics.NOOP` and all calls are free no-ops; this is the silent default, no error is logged beyond a `DEBUG` line.
+
+Implementations **must be thread-safe and fast** — they are invoked on the hot path of configuration access. Any `Throwable` thrown by an implementation is caught and logged by otto-config; it never breaks configuration loading or propagates to your application.
+
+### Enabling Metrics
+
+Metrics are **disabled by default** (opt-in) — both `ConfigMetricsRegistry`'s own default and `Context`'s. Turn them on with the `otto.config.metrics.enabled` property (default `false`), read once in `Context`'s constructor — before sources are created — the same way `otto.config.aws.change.notifications.enabled` is read. This works from plain Java (`Configuration`/`ConfigurationCache`), Spring (`application.properties`/`Environment`), and Helidon (MicroProfile `Config`), since all three feed into the same `Configuration` passed to `Context`.
+
+```properties
+otto.config.metrics.enabled=true
+```
+
+While disabled (the default, including before any `Context` is built, e.g. if you call `ConfigMetricsRegistry.get()` directly), `ConfigMetricsRegistry.get()` always returns `ConfigMetrics.NOOP`, regardless of any registered or discoverable implementation — no discovery is performed at all. This also applies to `ConfigMetricsRegistry.register(...)`: registering an implementation stores it, but `get()` still returns `ConfigMetrics.NOOP` until metrics are enabled. Once enabled, discovery runs (or a previously/subsequently registered implementation takes effect). A `null` `Configuration` is treated the same as the property being unset. The toggle is process-wide and a `Context` can only switch it on: a later `Context` without the property (e.g. a secondary one created for the REST endpoint) does not disable metrics again. To switch them off programmatically, call `ConfigMetricsRegistry.setEnabled(false)`.
+
+### Discovery Robustness
+
+`META-INF/services` discovery is defensive: each provider is loaded individually, and a provider that fails to resolve or instantiate — e.g. a stale class name, or `MicrometerConfigMetrics` registered while Micrometer is missing from the classpath (`NoClassDefFoundError`) — is skipped with a `WARN` log, while the remaining, working providers are still loaded and fanned out to. Discovery never throws and never prevents configuration loading.
+
+### Micrometer Adapter
+
+otto-config ships a ready-to-use adapter, `de.otto.config.integration.micrometer.MicrometerConfigMetrics`, backed by [Micrometer](https://micrometer.io/). It is **not** auto-registered — opt in via `META-INF/services` or `ConfigMetricsRegistry.register(...)`:
+
+```java
+ConfigMetricsRegistry.register(new MicrometerConfigMetrics(myMeterRegistry));
+```
+
+The no-arg constructor binds to `Metrics.globalRegistry`, which works even before a Spring Boot (or other DI) application context exists, since Spring Boot binds its auto-configured `MeterRegistry` to the global registry by default. This means metrics recorded during early startup are not lost once your application's registry is wired up.
+
+| Metric | Type | Tags |
+|---|---|---|
+| `otto.config.source.requests` | Counter | `source`, `result` (`hit`\|`miss`\|`refresh`) |
+| `otto.config.source.loads` | Timer | `source`, `outcome` (`success`\|`empty`\|`failure`), `exception` (simple class name, or `none`) |
+| `otto.config.http.requests` | Timer | `client`, `method`, `status` (HTTP status, or `none` if no response) |
+| `otto.config.refresh` | Timer | `type` (`full`\|`poll`) |
+| `otto.config.change.events` | Counter | — |
+
+The library depends on Micrometer only as a `compileOnly`/`testImplementation` dependency, so it does not pull Micrometer into your application unless you use this adapter.
 
 ## 🔑 REST API
 

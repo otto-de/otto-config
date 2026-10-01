@@ -1,6 +1,7 @@
 package de.otto.config.core.aws;
 
 import de.otto.config.core.Context;
+import de.otto.config.core.metrics.ConfigMetricsRegistry;
 import de.otto.config.core.source.Source;
 import de.otto.config.core.source.SourceChangeEvent;
 import de.otto.config.core.source.SourceChangeEventListener;
@@ -32,6 +33,7 @@ public class AwsChangeEventListener implements SourceChangeEventListener {
             return;
         }
 
+        ConfigMetricsRegistry.get().changeEventsReceived(messages.size());
         log.debug("Received {} message(s) from queue {}", messages.size(), queueUrl);
 
         List<DeleteMessageBatchRequestEntry> toDelete = new ArrayList<>(messages.size());

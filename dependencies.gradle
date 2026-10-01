@@ -6,4 +6,5 @@ ext{
     junit5Version = "5.11.3"
     hamcrestVersion = "2.2"
     helidonVersion = "4.3.0"
+    micrometerVersion = "1.15.3"
 }

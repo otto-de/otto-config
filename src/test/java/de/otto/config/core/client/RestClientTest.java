@@ -2,6 +2,9 @@ package de.otto.config.core.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import de.otto.config.core.metrics.ConfigMetrics;
+import de.otto.config.core.metrics.ConfigMetricsRegistry;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -9,6 +12,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -26,6 +31,12 @@ public class RestClientTest {
     private HttpClient mockHttpClient;
     private ObjectMapper objectMapper;
     private RestClient<DummyResponse> restClient;
+    private List<String> recordedHttpRequests;
+
+    @AfterEach
+    void tearDown() {
+        ConfigMetricsRegistry.reset();
+    }
 
     @BeforeEach
     void setUp() throws Exception{
@@ -35,6 +46,15 @@ public class RestClientTest {
         var clientField = RestClient.class.getDeclaredField("httpClient");
         clientField.setAccessible(true);
         clientField.set(restClient, mockHttpClient);
+
+        recordedHttpRequests = new ArrayList<>();
+        ConfigMetricsRegistry.setEnabled(true);
+        ConfigMetricsRegistry.register(new ConfigMetrics() {
+            @Override
+            public void httpRequest(String client, String method, int status, Duration duration) {
+                recordedHttpRequests.add(client + ":" + method + ":" + status);
+            }
+        });
     }
 
     @SuppressWarnings("unchecked")
@@ -60,6 +80,7 @@ public class RestClientTest {
         HttpRequest req = captor.getValue();
         assertThat(req.uri(), is(URI.create("http://test.com")));
         assertThat(req.headers().firstValue("Authorization").orElse(""), is("Bearer token"));
+        assertThat(recordedHttpRequests, hasItem("RestClient:GET:200"));
     }
 
     @SuppressWarnings("unchecked")
@@ -85,6 +106,7 @@ public class RestClientTest {
         HttpRequest req = captor.getValue();
         assertThat(req.uri(), is(URI.create("http://test.com")));
         assertThat(req.headers().firstValue("Content-Type").orElse(""), is("application/json"));
+        assertThat(recordedHttpRequests, hasItem("RestClient:POST:200"));
     }
 
     @SuppressWarnings("unchecked")
@@ -105,6 +127,7 @@ public class RestClientTest {
         assertThat(ex.getMessage(), containsString("body='Not found'"));
         assertThat(ex.getStatusCode(), is(404));
         assertThat(ex.getResponse(), is(response));
+        assertThat(recordedHttpRequests, hasItem("RestClient:GET:404"));
     }
 
     @SuppressWarnings("unchecked")
@@ -142,6 +165,7 @@ public class RestClientTest {
         );
         assertThat(ex.getMessage(), containsString("Failed to handle request"));
         assertThat(ex.getCause().getMessage(), is("Network error"));
+        assertThat(recordedHttpRequests, hasItem("RestClient:GET:-1"));
     }
 
     @SuppressWarnings("unchecked")

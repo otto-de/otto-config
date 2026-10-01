@@ -4,11 +4,13 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import de.otto.config.core.metrics.ConfigMetricsRegistry;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
@@ -48,8 +50,10 @@ public class RestClient<T> {
 
     private T sendRequest(HttpRequest request) throws RestException {
         long start = System.nanoTime();
+        int status = -1;
         try {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            status = response.statusCode();
 
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
                 throw new RestException("Unexpected status: " + response.statusCode()
@@ -62,6 +66,10 @@ public class RestClient<T> {
             throw e;
         } catch (Exception e) {
             throw new RestException("Failed to handle request: " + e.getMessage() + " [" + describe(request, start) + "]", e);
+        } finally {
+            Duration duration = Duration.ofNanos(System.nanoTime() - start);
+            String client = getClass().getSimpleName();
+            ConfigMetricsRegistry.get().httpRequest(client.isEmpty() ? "RestClient" : client, request.method(), status, duration);
         }
     }
 
