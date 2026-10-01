@@ -46,7 +46,7 @@ public class RefreshSchedulerTest {
         @Test
         public void shouldScheduleWithConfiguredIntervals() {
             verify(context, timeout(TimeUnit.SECONDS.toMillis(10)).atLeastOnce()).refresh();
-            verify(context, atLeastOnce()).pollAndRefresh();
+            verify(context, timeout(TimeUnit.SECONDS.toMillis(10)).atLeastOnce()).pollAndRefresh();
         }
     }
 }
