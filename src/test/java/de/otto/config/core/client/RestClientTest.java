@@ -9,6 +9,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 import java.util.Map;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -100,7 +101,34 @@ public class RestClientTest {
                 restClient.get("http://test.com", Map.of())
         );
         assertThat(ex.getMessage(), containsString("Unexpected status: 404"));
+        assertThat(ex.getMessage(), containsString("GET http://test.com"));
+        assertThat(ex.getMessage(), containsString("body='Not found'"));
+        assertThat(ex.getStatusCode(), is(404));
         assertThat(ex.getResponse(), is(response));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void shouldIncludeDiagnosticHeadersAndTruncatedBodyOnNon200Status() throws Exception {
+        // given
+        HttpResponse<Object> response = mock(HttpResponse.class);
+        when(response.statusCode()).thenReturn(502);
+        when(response.body()).thenReturn("<html>\n<body>502 Bad Gateway</body>\n</html>" + "x".repeat(1000));
+        when(response.headers()).thenReturn(java.net.http.HttpHeaders.of(
+                Map.of("Server", List.of("awselb/2.0"), "X-Amzn-Trace-Id", List.of("Root=1-abc")), (a, b) -> true));
+        when(mockHttpClient.send(any(), any())).thenReturn(response);
+
+        // when/then
+        RestException ex = assertThrows(RestException.class, () ->
+                restClient.get("http://test.com/v1/secret", Map.of("X-Vault-Token", "s.secret"))
+        );
+        assertThat(ex.getMessage(), containsString("Unexpected status: 502"));
+        assertThat(ex.getMessage(), containsString("GET http://test.com/v1/secret"));
+        assertThat(ex.getMessage(), containsString("server=awselb/2.0"));
+        assertThat(ex.getMessage(), containsString("x-amzn-trace-id=Root=1-abc"));
+        assertThat(ex.getMessage(), containsString("body='<html> <body>502 Bad Gateway</body> </html>xxx"));
+        assertThat(ex.getMessage(), containsString("...'"));
+        assertThat(ex.getMessage(), not(containsString("s.secret")));
     }
 
     @Test

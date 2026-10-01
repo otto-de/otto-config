@@ -18,6 +18,10 @@ public class RestException extends Exception {
         this.response = response;
     }
 
+    public Integer getStatusCode() {
+        return response != null ? response.statusCode() : null;
+    }
+
     public RestException(String message, Throwable cause) {
         super(message, cause);
         this.response = null;

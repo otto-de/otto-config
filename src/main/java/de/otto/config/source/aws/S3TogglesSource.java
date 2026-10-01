@@ -62,7 +62,7 @@ public class S3TogglesSource extends Source<Toggles> {
                               .flatMap(Optional::stream)
                               .forEach(entry -> toggles.merge(entry.name(), entry.enabled(), (existing, next) -> existing || next));
 
-            log.info("Loaded {} feature toggles from S3 bucket='{}' prefix='{}'",
+            log.debug("Loaded {} feature toggles from S3 bucket='{}' prefix='{}'",
                      toggles.size(), this.bucketName, this.togglesFolder);
 
             return toToggles(toggles);

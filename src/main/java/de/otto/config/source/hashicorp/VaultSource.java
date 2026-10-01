@@ -42,8 +42,7 @@ public class VaultSource extends PropertySource {
             log.debug("No secrets found in Vault path='{}', returning empty", this.secretPath);
             return getEmptyValue();
         } catch (VaultException e) {
-            log.error("Unable to get secrets from Vault path='{}': {}", this.secretPath, e.getMessage(), e);
-            throw new SourceException("Unable to get secrets from Vault", e);
+            throw new SourceException("Unable to get secrets from Vault path='" + this.secretPath + "'", e);
         }
     }
 
@@ -62,7 +61,7 @@ public class VaultSource extends PropertySource {
     private List<Integer> getVersions(String secretPath) throws VaultException {
         VaultResponse response = this.vaultClient.readMetadata(secretPath);
 
-        if (response.data() == null && response.data().versions() == null) {
+        if (response.data() == null || response.data().versions() == null) {
             log.warn("No versions found.");
             return Collections.emptyList();
         }

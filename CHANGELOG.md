@@ -3,6 +3,7 @@
 ## 0.1.12
 * **[core]**: Make the refresh scheduling configurable via `otto.config.refresh.interval` (default `PT5M`, full refresh of all sources) and `otto.config.refresh.poll.interval` (default `PT10S`, change-event polling). Both accept ISO-8601 durations and work for Spring and Helidon. See [docs/ADVANCED.md](docs/ADVANCED.md#refresh-scheduling).
 * **[core]**: Add logging to the Hashicorp Vault source. Token generation (AppRole and AWS IAM), token renewal, and secret/metadata reads are logged at `DEBUG`; login and fetch failures are logged at `ERROR`. No tokens, credentials, or secret values are logged. Enable via `logging.level.de.otto.config.client.hashicorp=DEBUG` and `logging.level.de.otto.config.source.hashicorp=DEBUG`.
+* **[core]**: Improve HTTP error diagnostics. `RestException` messages now include the request method and URL, elapsed time, the response body (whitespace-collapsed, truncated to 512 chars) and identifying response headers (`server`, `via`, `content-type`, `x-request-id`, `x-amzn-requestid`, `x-amzn-trace-id`, `x-amz-cf-id`), e.g. to tell a load-balancer `502` apart from a Vault error. Request headers (including the Vault token) are never included. Vault read failures now log the stack trace once (in `Source`) instead of three times.
 
 ## 0.1.11
 * **[core]**: Replace `System.out.println` debug output in `SsmSource` with `log.debug`, avoiding noisy stdout logging in production.

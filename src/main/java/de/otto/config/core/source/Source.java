@@ -31,7 +31,7 @@ public abstract class Source<T extends Configuration<?>> implements Refreshable 
                 }
             }
         } catch (SourceException e) {
-            log.error("Error loading configuration from source", e);
+            log.error("Error loading configuration from source {}: {}", getClass().getSimpleName(), e.getMessage(), e);
         }
         return cache != null ? cache : getEmptyValue();
     }
