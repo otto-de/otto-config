@@ -10,7 +10,6 @@ import org.springframework.context.ApplicationContext;
 import de.otto.config.core.Context;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
