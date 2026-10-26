@@ -2,7 +2,6 @@ package de.otto.config.core;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import de.otto.config.core.property.PropertyNameNormalizer;
 import lombok.Builder;
@@ -10,24 +9,26 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public final class ConfigurationCache<T> implements Configuration<T> {
-    private final ConcurrentHashMap<String, T> properties = new ConcurrentHashMap<>();
+    // Immutable snapshot, swapped atomically so readers never observe a partially refreshed state
+    private volatile Map<String, T> properties = Map.of();
 
     @Builder
     public ConfigurationCache(Map<String, T> properties) {
-        this.properties.putAll(properties);
+        this.properties = Map.copyOf(properties);
     }
 
     @Override
     public T getValue(String key) {
+        Map<String, T> snapshot = this.properties;
         // Try exact match first
-        T value = this.properties.get(key);
+        T value = snapshot.get(key);
         if (value != null) {
             return value;
         }
         
         // Try variants for relaxed binding (supports all frameworks)
         for (String variant : PropertyNameNormalizer.generateVariants(key)) {
-            value = this.properties.get(variant);
+            value = snapshot.get(variant);
             if (value != null) {
                 return value;
             }
@@ -48,8 +49,7 @@ public final class ConfigurationCache<T> implements Configuration<T> {
     }
 
     public void setProperties(Map<String, T> values) {
-        this.properties.clear();
-        this.properties.putAll(values);
+        this.properties = Map.copyOf(values);
     }
 
     public Set<String> getPropertyNames() {

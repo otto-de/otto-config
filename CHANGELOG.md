@@ -1,5 +1,8 @@
 # Release Notes
 
+## 0.1.15
+* **[core]**: Fix a race in `ConfigurationCache.setProperties()`: the cache was emptied (`clear()`) before being refilled (`putAll()`), so concurrent readers could briefly get `null` for keys that exist in the sources, on every refresh. The content is now swapped atomically as an immutable snapshot. `getProperties()` / `getPropertyNames()` now return an unmodifiable snapshot instead of the live map. Fixes [#7](https://github.com/otto-de/otto-config/issues/7).
+
 ## 0.1.14
 * **[core]**: Add pluggable metrics via the `de.otto.config.core.metrics.ConfigMetrics` SPI. Reports source requests (`hit`/`miss`/`refresh`), source load duration and outcome (`success`/`empty`/`failure`), HTTP calls of built-in REST clients (e.g. Vault: status and latency), full/poll refresh duration, and received change events. Register an implementation via `META-INF/services/de.otto.config.core.metrics.ConfigMetrics` or `ConfigMetricsRegistry.register(...)`.
 * **[core]**: Metrics are opt-in: enable with `otto.config.metrics.enabled=true` (default `false`). When disabled or when no implementation is registered, all calls are no-ops. Exceptions thrown by an implementation are caught and logged and never affect configuration loading; providers that fail to load (e.g. missing Micrometer on the classpath) are skipped with a `WARN`.
