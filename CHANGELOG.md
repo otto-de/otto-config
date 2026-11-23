@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.1.16
+* **[core]**: Support Spring Boot 4. Spring Boot 4 moved `EnvironmentPostProcessor` to `org.springframework.boot` and deprecated the old interface for removal. The new `SpringBoot4EnvironmentPostProcessor` is registered under the new `spring.factories` key, next to the existing one for Spring Boot 3. Spring Boot 4 runs both, so the otto-config property source is only added once. Spring Boot 3 applications are unaffected.
+* **[build]**: Compile `SpringBoot4EnvironmentPostProcessor` against Spring Boot 4 in its own source set, packaged into the same jar. A new `springBoot4Test` suite, part of `check`, runs the jar in a Spring Boot 4 application.
+
 ## 0.1.15
 * **[core]**: Fix a race in `ConfigurationCache.setProperties()`: the cache was emptied (`clear()`) before being refilled (`putAll()`), so concurrent readers could briefly get `null` for keys that exist in the sources, on every refresh. The content is now swapped atomically as an immutable snapshot. `getProperties()` / `getPropertyNames()` now return an unmodifiable snapshot instead of the live map. Fixes [#7](https://github.com/otto-de/otto-config/issues/7).
 
