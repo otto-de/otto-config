@@ -22,6 +22,18 @@ public class PropertySource extends org.springframework.core.env.PropertySource<
                                                           .build();
     }
 
+    /**
+     * Adds the otto-config property source right after the system environment, unless the
+     * environment already has it. Spring Boot 4 runs the post processors of both
+     * {@code spring.factories} keys, so registering more than once must not create a second
+     * configuration provider.
+     */
+    public static void addTo(ConfigurableEnvironment environment) {
+        if (!environment.getPropertySources().contains(NAME)) {
+            environment.getPropertySources().addAfter("systemEnvironment", new PropertySource(environment));
+        }
+    }
+
     @Override
     public Object getProperty(String name) {
         return this.configurationProvider.getValue(name);

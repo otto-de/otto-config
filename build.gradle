@@ -31,6 +31,15 @@ java {
     targetCompatibility = JavaVersion.VERSION_21
 }
 
+// Spring Boot 4 moved EnvironmentPostProcessor to org.springframework.boot. Its implementation is
+// compiled against Spring Boot 4 in this source set and packaged into the same jar, so the rest of
+// the library keeps compiling against Spring Boot 3 and the jar works with both.
+sourceSets {
+    springBoot4 {
+        compileClasspath += sourceSets.main.output
+    }
+}
+
 dependencies {
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
@@ -51,6 +60,10 @@ dependencies {
 
     // Add Spring Boot testing starter
     testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+    // The Spring Boot 3 tests run with everything the jar ships, including the Spring Boot 4 classes
+    testRuntimeOnly sourceSets.springBoot4.output
+
+    springBoot4CompileOnly "org.springframework.boot:spring-boot:${springBoot4Version}"
 
     // Other dependencies
     implementation "software.amazon.awssdk:sts:${awsSdkVersion}"
@@ -81,6 +94,11 @@ jar {
     archiveBaseName = "${rootProject.name}"
     archiveVersion = "${project.version}"
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from sourceSets.springBoot4.output
+}
+
+tasks.named('sourcesJar') {
+    from sourceSets.springBoot4.allSource
 }
 
 tasks.register('delombok') {
@@ -96,6 +114,25 @@ tasks.register('delombok') {
 
 test {
     useJUnitPlatform()
+}
+
+testing {
+    suites {
+        // Runs the jar in a Spring Boot 4 application
+        springBoot4Test(JvmTestSuite) {
+            useJUnitJupiter()
+            dependencies {
+                implementation project()
+                implementation files(sourceSets.springBoot4.output)
+                implementation platform("org.springframework.boot:spring-boot-dependencies:${springBoot4Version}")
+                implementation "org.springframework.boot:spring-boot-starter-test"
+            }
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn(testing.suites.springBoot4Test)
 }
 
 publishing {

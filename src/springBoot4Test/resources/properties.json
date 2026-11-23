@@ -1,0 +1,5 @@
+{
+  "properties": {
+    "my.ssm.property1": "ssm-value1"
+  }
+}
